@@ -1,0 +1,28 @@
+# Deployment validation — 2026-10-15
+
+- All three Pis accept SSH public-key login as `pi`.
+- Pi 4 enumerates Creative X7 `041e:323a`, ALSA card `X7`, hardware PCM 0.
+- A one-second silent stereo PCM stream successfully opened the X7 USB device
+  at 48 kHz, S16_LE. Audible playback still requires user confirmation.
+- Shairport Sync was built with AirPlay 2, ALSA and soxr; NQPTP is installed.
+- Pi 4 was rebooted. `shairport-sync`, `nqptp` and `x7-api` are all enabled
+  and active after reboot. Bonjour again advertises `Sound Blaster X7`.
+- X7 API reads volume/mute, successfully writes volume, mutes and unmutes.
+  Original volume/mute state was restored. Unauthenticated requests return 401;
+  volume 101 returns 400.
+- Gallery Homebridge loaded the plugin and registered `Gallery USB Light`
+  and `X7 Volume`. Existing SwitchBot accessory was restored from cache.
+- Running the installed plugin as the real `homebridge` user successfully reads
+  the USB power state and reads/writes X7 volume after Pi 4's reboot.
+- Gallery USB power reported off then on during a two-second cycle. Physical
+  lamp switching still requires user confirmation. AirPlay remained active.
+- Bedroom Shairport Sync, NQPTP, Homebridge and Katana API are active.
+  Katana is absent from `lsusb`; `/health` reports unavailable. Its USB cable
+  and power must be checked before testing Katana controls.
+- Gallery's original Homebridge config was backed up before mutation.
+  Existing AirPlay configurations on Gallery and Bedroom were not changed.
+- Python compilation and Node syntax checks pass for the new code.
+
+Not verified: audible AirPlay playback, multiroom synchronization, physical lamp
+response, Home app interaction, Katana hardware controls, X7 input/DSP/power
+commands (not implemented). HomeKit X7 on/off means mute/unmute.
