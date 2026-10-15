@@ -1,0 +1,45 @@
+--- a/roborockLib/lib/roborockAuth.js
++++ b/roborockLib/lib/roborockAuth.js
+@@ -224,7 +224,7 @@
+ 
+ async function loginWithCode(
+   loginApi,
+-  { email, code, country, countryCode, k, s }
++  { email, code, password, country, countryCode, k, s }
+ ) {
+   const headers = {
+     "x-mercy-k": k,
+@@ -243,6 +243,13 @@
+     const res = await loginApi.post(API_V4_LOGIN_CODE, params.toString(), {
+       headers,
+     });
++    // Some accounts require both an emailed code and an encrypted password.
++    // Retry only this explicit server request, never lock/rate-limit errors.
++    if (res.data && res.data.code === 3039 && password) {
++      params.set("password", encryptPassword(password, k));
++      const verified = await loginApi.post(API_V4_LOGIN_CODE, params.toString(), { headers });
++      return verified.data;
++    }
+     return res.data;
+   } catch (error) {
+     if (error.response && error.response.data) {
+--- a/dist/ui/index.js
++++ b/dist/ui/index.js
+@@ -232,6 +232,7 @@
+             loginResult = await roborockAuth.loginWithCode(loginApi, {
+                 email,
+                 code: payload.code,
++                password: payload.password,
+                 country: region.country,
+                 countryCode: region.countryCode,
+                 k: signData.k,
+--- a/homebridge-ui/public/index.js
++++ b/homebridge-ui/public/index.js
+@@ -906,6 +906,7 @@
+   const result = await request("/auth/verify-2fa-code", {
+     email,
+     code,
++    password: getPassword(),
+     baseURL,
+   });
+   if (result.ok) {

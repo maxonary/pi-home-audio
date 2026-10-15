@@ -23,3 +23,23 @@ Plugin loaded successfully and Homebridge UI returned HTTP 200. Actual vacuum
 control remains untested until account login. No vacuum commands were sent.
 
 Upstream: https://github.com/tasict/homebridge-roborock-vacuum
+
+## Corrected model and login compatibility
+
+User screenshot identifies Q10 S5 / `roborock.vacuum.ss07`, not S7. Login is
+still pending. Roborock's code-verification endpoint returned code 3039,
+`password missing`, although the UI password input was filled: this plugin
+version does not forward it during code verification. Local patch
+`config/roborock-2.2.10-auth.patch` forwards that field transiently and retries
+only an explicit 3039 response with a password encrypted using the existing
+password-login algorithm. It never retries lock or rate-limit responses.
+
+Backups of the three source files are under Gallery
+`/var/backups/pi-home-audio/roborock-auth-fix/`. Only the settings backend was
+terminated to reload changes; reload the browser before the next user login.
+Mock tests verified code-only success, encrypted-password retry, and no retry
+on a rate-limit response, with no real cloud authentication requests. Actual
+authentication is unverified and needs the user's next attempt. This is a
+local compatibility patch and is overwritten by npm reinstall/update.
+To reapply against unmodified 2.2.10, run `patch -p1` in its package directory
+with this patch file as input. Do not apply blindly to other versions.
