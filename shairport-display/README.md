@@ -28,3 +28,10 @@ Upstream display remains available at / for comparison/rollback.
 Live metadata pipe sampled while music playing: no bytes in 3-second sample.
 This does not establish that sender never sends metadata; fresh track/source check pending.
 Frontend says Waiting for track details rather than incorrectly Not Playing.
+
+AirPlay2 adapter: require('./airplay2-adapter')(pipeReader, metadataHealth) after reader
+construction. Converts ssnc/copl binary-plist updateMRNowPlayingInfo into legacy
+meta/PICT/progress events using Python stdlib plistlib. Fixture conversion checked.
+Live counters show metadata reached receiver after fresh session (256531 bytes);
+a subsequent pend stopped playback. Adapter awaits fresh live nowplaying packet.
+Do not claim artwork/track display fixed until real track verified.
