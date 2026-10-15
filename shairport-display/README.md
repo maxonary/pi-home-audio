@@ -14,3 +14,7 @@ Minimal source adaptation: bind server.listen to 127.0.0.1.
 
 Start a new AirPlay track if the source does not resend existing metadata.
 This is an upstream metadata UI, not an exact Apple TV clone.
+
+Idle correction: fix-idle.py removes the blocking French noInfo modal, adds an
+English dark standby screen, and uses sans-serif track typography. Verified through
+the live served page. Kiosk restarted to load it; no metadata was available at check.
