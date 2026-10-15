@@ -61,5 +61,25 @@ To stop X7 control: `sudo systemctl disable --now x7-api`.
 To stop pi4 AirPlay: `sudo systemctl disable --now shairport-sync nqptp`.
 Do not delete Homebridge `persist/` or `accessories/` directories.
 
-The two existing AirPlay installations are preserved. They have different
-versions and tuning; upgrading them needs separate listening/sync validation.
+## Bedroom and Gallery repairs
+
+Bedroom uses `config/bedroom-shairport-sync.conf` at
+`/usr/local/etc/shairport-sync.conf`. It selects the Katana by stable name and
+uses its real `Speakers` mixer. The old numeric-card retry hook was removed.
+Its existing NQPTP binary retains the matching smi10 interface, but runs as a
+dedicated system account `nqptp`, rather than the interactive `pi` account.
+This protects timing shared memory from interactive-user IPC cleanup. The
+Shairport service now depends on NQPTP. The hotplug rule starts the service
+once per sound card instead of launching multiple blocking restart scripts.
+Backups are under `/var/backups/pi-home-audio/` on Bedroom.
+
+Gallery uses `config/gallery-shairport-sync.conf` and the matching systemd
+override. It uses stable `Headphones` hardware names, `vernier` interpolation,
+and retains its 70 ms latency offset. Shairport now runs as an audio-group
+system user rather than root. The forced 100% mixer setting on service startup
+was removed. Journal logging includes volume changes and stream statistics
+for investigating reported volume fluctuations; these are not yet proven fixed.
+Backups are under `/var/backups/pi-home-audio/` on Gallery.
+
+Neither existing receiver binary was upgraded. They have different versions
+and tuning; upgrading them needs separate listening/sync validation.

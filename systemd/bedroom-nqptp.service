@@ -1,0 +1,15 @@
+[Unit]
+Description=NQPTP AirPlay timing service
+After=network.target
+Before=shairport-sync.service
+
+[Service]
+User=nqptp
+Group=nqptp
+ExecStart=/usr/local/bin/nqptp
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

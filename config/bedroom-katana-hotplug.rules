@@ -1,0 +1,2 @@
+# One activation per sound card; avoid blocking udev with sleeps/restarts.
+ACTION=="add", SUBSYSTEM=="sound", KERNEL=="card[0-9]*", ATTRS{idVendor}=="041e", ATTRS{idProduct}=="3247", TAG+="systemd", ENV{SYSTEMD_WANTS}+="shairport-sync.service"

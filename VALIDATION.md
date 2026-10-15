@@ -1,4 +1,4 @@
-# Deployment validation — 2026-10-15
+# Initial deployment validation — 2026-10-15
 
 - All three Pis accept SSH public-key login as `pi`.
 - Pi 4 enumerates Creative X7 `041e:323a`, ALSA card `X7`, hardware PCM 0.
@@ -26,3 +26,22 @@
 Not verified: audible AirPlay playback, multiroom synchronization, physical lamp
 response, Home app interaction, Katana hardware controls, X7 input/DSP/power
 commands (not implemented). HomeKit X7 on/off means mute/unmute.
+
+## Follow-up repairs and user feedback
+
+- User confirms Gallery USB light physically switches and X7 audio plays.
+- User reports Gallery loudness fluctuations; not yet resolved by listening.
+- Katana is now enumerated (`041e:3247`); API health is `ok`, firmware/input/
+  volume/lighting queries succeed. All queried EQ registers report unsupported.
+- Bedroom AirPlay had exited because `/dev/shm/nqptp` was missing despite the
+  daemon being alive. Restart restored it. Dedicated NQPTP account, explicit
+  dependency, stable Katana ALSA identifiers and a nonblocking hotplug rule
+  were deployed. Timing file remains readable by the Shairport service user
+  across subsequent SSH login/logout; both services stay active.
+- Gallery now runs Shairport without root, using `vernier` interpolation;
+  forced mixer reset removed and volume/statistics logging enabled. Configuration
+  was accepted, NQPTP is online and Homebridge remains active.
+- Bonjour discovery lists Bedroom, Gallery and Sound Blaster X7 again.
+- Existing working X7 audio settings and HomeKit USB light control were retained.
+- Pi 4 kernel contains UAC2 gadget support, but its USB-C controller is currently
+  configured for host mode. Mac USB audio was assessed, not activated or tested.
