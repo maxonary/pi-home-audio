@@ -45,3 +45,26 @@ commands (not implemented). HomeKit X7 on/off means mute/unmute.
 - Existing working X7 audio settings and HomeKit USB light control were retained.
 - Pi 4 kernel contains UAC2 gadget support, but its USB-C controller is currently
   configured for host mode. Mac USB audio was assessed, not activated or tested.
+
+## Multiroom switching investigation and stable-release update
+
+User reported Bedroom sometimes silent after switching a three-speaker group.
+At inspection the process and timing service were alive, Katana input was
+`computer`, volume 75%, unmuted; the AirPlay control connection was established
+but the USB playback PCM was closed. The earlier missing timing-file condition
+was not present. Restart restored availability. User then reported that changing
+volume in the Home app also restored playback. This implicates session/control
+state but does not establish a definitive root cause.
+
+Shairport Sync 5.6 (released 2026-10-14) specifically improves group master-clock
+changes and fixes unexpected session stops triggered by other players. All
+three receivers were built from tag 5.6 with NQPTP tag 1.2.9, matching smi11.
+Tagged source hashes are in `config/source-versions.json`. Previous binary
+pairs are retained on each Pi under `/var/backups/pi-home-audio/pre-5.6/`.
+Active configuration and existing systemd/Homebridge services were preserved.
+Both timing/audio services were checked after installation. Bedroom also now
+logs volume and stream diagnostics to the journal.
+
+Repeated grouped playback/switching and audible synchronization require the
+user's next listening test; service health alone does not prove the intermittent
+problem is resolved. The upgrade script's shell syntax was checked before use.

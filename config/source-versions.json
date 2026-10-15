@@ -1,10 +1,12 @@
 {
   "shairport-sync": {
     "url": "https://github.com/mikebrady/shairport-sync.git",
-    "commit": "7e27a3251773802b28c8b539aff1908d298be6be"
+    "tag": "5.6",
+    "commit": "9118bbce71f287df2dfdfb5bed3911d92a9fdb0f"
   },
   "nqptp": {
     "url": "https://github.com/mikebrady/nqptp.git",
+    "tag": "1.2.9",
     "commit": "ab8fb67483411640fd7f1e193889482f2421c37c"
   }
 }

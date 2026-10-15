@@ -67,8 +67,7 @@ Do not delete Homebridge `persist/` or `accessories/` directories.
 Bedroom uses `config/bedroom-shairport-sync.conf` at
 `/usr/local/etc/shairport-sync.conf`. It selects the Katana by stable name and
 uses its real `Speakers` mixer. The old numeric-card retry hook was removed.
-Its existing NQPTP binary retains the matching smi10 interface, but runs as a
-dedicated system account `nqptp`, rather than the interactive `pi` account.
+NQPTP runs as a dedicated system account `nqptp`, rather than the interactive `pi` account.
 This protects timing shared memory from interactive-user IPC cleanup. The
 Shairport service now depends on NQPTP. The hotplug rule starts the service
 once per sound card instead of launching multiple blocking restart scripts.
@@ -84,5 +83,21 @@ Maximum analog output is capped at 0 dB rather than the built-in mixer's +4 dB
 ceiling, avoiding digital gain above unity. This does not resolve analog hum.
 Backups are under `/var/backups/pi-home-audio/` on Gallery.
 
-Neither existing receiver binary was upgraded. They have different versions
-and tuning; upgrading them needs separate listening/sync validation.
+## Matched stable releases
+
+The target for all receivers is Shairport Sync **5.6** and NQPTP **1.2.9**,
+both using timing interface **smi11**. Release 5.6 improves grandmaster changes
+when speakers join/leave groups and fixes sessions unexpectedly stopping when
+other players connect. See https://github.com/mikebrady/shairport-sync/releases/tag/5.6.
+
+`scripts/upgrade-airplay.sh build` builds the tagged releases without modifying
+the active binaries. `install` saves the existing binaries in
+`/var/backups/pi-home-audio/pre-5.6/`, stops both services, installs the matched
+pair, starts timing before audio, and checks service health. `rollback` restores
+the saved pair. Run these as `pi`; installation uses sudo. Existing services,
+device-specific configuration paths, Homebridge and USB controls are retained.
+
+Build dependencies follow upstream BUILD.md. The install deliberately copies
+binaries rather than replacing existing service/configuration files with
+upstream sample files. Shell syntax was checked locally; all runtime and
+playback validation is recorded in VALIDATION.md.
