@@ -18,3 +18,13 @@ This is an upstream metadata UI, not an exact Apple TV clone.
 Idle correction: fix-idle.py removes the blocking French noInfo modal, adds an
 English dark standby screen, and uses sans-serif track typography. Verified through
 the live served page. Kiosk restarted to load it; no metadata was available at check.
+
+AMLL frontend deployed under public/amll, kiosk URL /amll/.
+Built from maxonary/applemusic-like-lyrics branch bedroom-airplay, example directory.
+Build: VITE_METADATA_URL=/ npm run build -- --base=/amll/
+Uses this same Node server/WebSocket at root; no second FIFO reader, proxy or service.
+AMLL static quarter-resolution background default on Pi3; animation remains off.
+Upstream display remains available at / for comparison/rollback.
+Live metadata pipe sampled while music playing: no bytes in 3-second sample.
+This does not establish that sender never sends metadata; fresh track/source check pending.
+Frontend says Waiting for track details rather than incorrectly Not Playing.
