@@ -1,4 +1,4 @@
-# Roborock S7
+# Roborock Q10 S5
 
 Installed `homebridge-roborock-vacuum` 2.2.10 on Gallery under
 `/var/lib/homebridge/node_modules` alongside existing Homebridge 1.11.2.
@@ -43,3 +43,10 @@ authentication is unverified and needs the user's next attempt. This is a
 local compatibility patch and is overwritten by npm reinstall/update.
 To reapply against unmodified 2.2.10, run `patch -p1` in its package directory
 with this patch file as input. Do not apply blindly to other versions.
+
+## System maintenance
+
+Gallery now runs Homebridge 2.4.0, UI 5.29.0 and Node 24.22.0. Roborock remains
+at 2.2.10 with its local compatibility patch intact. The account endpoint is
+explicitly Europe (`https://euiot.roborock.com`). The earlier US session was
+backed up and cleared; a fresh EU login and device discovery are still pending.

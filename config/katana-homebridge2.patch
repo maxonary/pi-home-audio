@@ -1,0 +1,13 @@
+diff --git a/homebridge-plugin/package.json b/homebridge-plugin/package.json
+index 0f9a881..3053b90 100644
+--- a/homebridge-plugin/package.json
++++ b/homebridge-plugin/package.json
+@@ -16,7 +16,7 @@
+     "katana"
+   ],
+   "engines": {
+-    "homebridge": "^1.6.0",
++    "homebridge": "^1.6.0 || ^2.0.0",
+     "node": ">=18.0.0"
+   },
+   "devDependencies": {

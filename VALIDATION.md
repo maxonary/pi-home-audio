@@ -88,3 +88,14 @@ tests changed Night then restored Flat. Existing volume read/write still works.
 
 No Tailscale or agent software installed. Mac not connected yet: enumeration,
 Mac-powered stability, audible USB/AirPlay and multiroom sync remain unverified.
+
+## System and Homebridge updates, 2026-10-15
+
+All three Pis updated within their existing OS release and rebooted one at a
+time. Homebridge core is now 2.4.0, UI 5.29.0, runtime Node 24.22.0 on Gallery
+and Bedroom; SwitchBot is 5.1.2 on both. Office retains its standalone audio
+services. Detailed versions, backup locations, validation and outstanding
+physical playback/account-linking tests are in MAINTENANCE.md. Final dpkg
+audits were clean, apt showed no pending updates, no systemd units were failed,
+all five child bridges listened on their configured ports, all three AirPlay
+receiver names were discovered, and bridge identities survived unchanged.

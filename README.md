@@ -15,7 +15,8 @@ The local `homebridge-pi-home-audio` plugin runs on Gallery's existing Homebridg
 It exposes **Gallery USB Light** (on/off) and **X7 Volume** (a dimmable light
 accessory: brightness is speaker volume, on/off is unmute/mute). This follows
 the same volume-slider representation as the existing Katana plugin. It does
-not switch the X7's physical power. Use the existing Gallery bridge pairing.
+not switch the X7's physical power. Pair the **Gallery Audio Controls** child bridge separately in Apple Home.
+See [CHILD-BRIDGES.md](CHILD-BRIDGES.md).
 
 Office also exposes three software EQ preset switches: **Office EQ Flat**,
 **Office EQ Night**, and **Office EQ Speech**. See [OFFICE.md](OFFICE.md).
