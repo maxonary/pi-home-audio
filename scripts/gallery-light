@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pi 3B+: external USB sockets share power; never switch hub port 1.
+set -eu
+case "${1:-}" in
+  on|off) exec /usr/sbin/uhubctl -l 1-1 -p 2 -a "$1" ;;
+  status) exec /usr/sbin/uhubctl -l 1-1 -p 2 ;;
+  *) echo 'Usage: gallery-light on|off|status' >&2; exit 2 ;;
+esac
