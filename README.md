@@ -42,6 +42,7 @@ https://github.com/mikebrady/nqptp
 
 Configure flags: `--sysconfdir=/etc --with-alsa --with-soxr --with-avahi
 --with-ssl=openssl --with-systemd-startup --with-airplay-2`.
+The AirPlay receiver is named **Office** (the device remains a Sound Blaster X7).
 Use `config/x7-shairport-sync.conf` at `/etc/shairport-sync.conf`.
 It selects `hw:CARD=X7,DEV=0` and the `Speaker` hardware mixer by stable name.
 The upstream systemd units run the audio/timing services with limited privileges.
@@ -79,6 +80,8 @@ and retains its 70 ms latency offset. Shairport now runs as an audio-group
 system user rather than root. The forced 100% mixer setting on service startup
 was removed. Journal logging includes volume changes and stream statistics
 for investigating reported volume fluctuations; these are not yet proven fixed.
+Maximum analog output is capped at 0 dB rather than the built-in mixer's +4 dB
+ceiling, avoiding digital gain above unity. This does not resolve analog hum.
 Backups are under `/var/backups/pi-home-audio/` on Gallery.
 
 Neither existing receiver binary was upgraded. They have different versions
