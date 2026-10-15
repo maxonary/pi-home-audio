@@ -1,0 +1,32 @@
+#!/bin/bash
+set -euo pipefail
+g=/sys/kernel/config/usb_gadget/office
+if [[ ${1:-start} == stop ]]; then
+  [[ ! -e $g/UDC ]] || echo '' > "$g/UDC"
+  exit 0
+fi
+modprobe libcomposite
+mountpoint -q /sys/kernel/config || mount -t configfs none /sys/kernel/config
+mkdir -p "$g"
+if [[ ! -d $g/functions/uac2.usb0 ]]; then
+  # Linux Foundation composite gadget IDs; local personal-use prototype.
+  echo 0x1d6b > "$g/idVendor"
+  echo 0x0104 > "$g/idProduct"
+  echo 0x0200 > "$g/bcdUSB"
+  mkdir -p "$g/strings/0x409" "$g/configs/c.1/strings/0x409"
+  echo office-pi4-audio > "$g/strings/0x409/serialnumber"
+  echo 'Pi Home Audio' > "$g/strings/0x409/manufacturer"
+  echo 'Office USB Audio' > "$g/strings/0x409/product"
+  echo 'Stereo audio input' > "$g/configs/c.1/strings/0x409/configuration"
+  echo 250 > "$g/configs/c.1/MaxPower"
+  mkdir -p "$g/functions/uac2.usb0"
+  # USB OUT (Mac playback) becomes capture on the Pi. No Mac microphone.
+  echo 3 > "$g/functions/uac2.usb0/c_chmask"
+  echo 48000 > "$g/functions/uac2.usb0/c_srate"
+  echo 3 > "$g/functions/uac2.usb0/c_ssize"
+  echo 0 > "$g/functions/uac2.usb0/p_chmask"
+  ln -s "$g/functions/uac2.usb0" "$g/configs/c.1/uac2.usb0"
+fi
+controller=$(find /sys/class/udc -mindepth 1 -maxdepth 1 -printf '%f\n' | head -1)
+[[ -n $controller ]] || { echo 'No USB device controller; enable dwc2 peripheral and reboot' >&2; exit 1; }
+[[ -n $(cat "$g/UDC") ]] || echo "$controller" > "$g/UDC"

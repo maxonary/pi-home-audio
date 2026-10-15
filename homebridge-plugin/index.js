@@ -13,6 +13,7 @@ class PiHomeAudio {
     this.config = config;
     this.api = api;
     this.cached = new Map();
+    this.eqServices = new Map();
     api.on('didFinishLaunching', () => this.setup());
   }
   configureAccessory(accessory) { this.cached.set(accessory.UUID, accessory); }
@@ -37,8 +38,8 @@ class PiHomeAudio {
     // With mutations uhubctl prints both old and new status; callers reread.
     return (parseInt(match[1], 16) & 0x100) !== 0;
   }
-  async x7(body) {
-    const response = await fetch(this.config.x7Host + '/state', {
+  async x7(body, path = '/state') {
+    const response = await fetch(this.config.x7Host + path, {
       method: body ? 'POST' : 'GET',
       headers: { Authorization: 'Bearer ' + this.config.x7Token, 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined,
@@ -67,6 +68,28 @@ class PiHomeAudio {
         .onGet(async () => (await this.x7()).volume)
         .onSet(async value => { await this.x7({ volume: Math.round(value) }); });
       this.log.info('X7 Volume registered (brightness = volume, on/off = unmute/mute)');
+      if (this.config.officeEQ) {
+        for (const preset of ['flat', 'night', 'speech']) {
+          const name = 'Office EQ ' + preset[0].toUpperCase() + preset.slice(1);
+          const a = this.accessory('office-eq-' + preset, name, 'Office software EQ');
+          const s = a.getService(S.Switch) || a.addService(S.Switch, name);
+          this.eqServices.set(preset, s);
+          s.getCharacteristic(C.On)
+            .onGet(async () => (await this.x7(undefined, '/eq')).preset === preset)
+            .onSet(async value => {
+              if (value) await this.x7({ preset }, '/eq');
+              // Preset buttons always reflect the live selected preset.
+              setTimeout(async () => {
+                try {
+                  const current = (await this.x7(undefined, '/eq')).preset;
+                  for (const [key, service] of this.eqServices) service.updateCharacteristic(C.On, current === key);
+                }
+                catch (err) { this.log.error(err.message); }
+              }, 100);
+            });
+        }
+        this.log.info('Office EQ preset switches registered');
+      }
     }
   }
 }

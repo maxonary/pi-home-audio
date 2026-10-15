@@ -17,8 +17,12 @@ accessory: brightness is speaker volume, on/off is unmute/mute). This follows
 the same volume-slider representation as the existing Katana plugin. It does
 not switch the X7's physical power. Use the existing Gallery bridge pairing.
 
+Office also exposes three software EQ preset switches: **Office EQ Flat**,
+**Office EQ Night**, and **Office EQ Speech**. See [OFFICE.md](OFFICE.md).
+
 X7 volume/mute use verified ALSA `Speaker` controls. No speculative HID commands
-are sent. Input routing, DSP/SBX and physical power are not implemented.
+are sent. Native X7 DSP/SBX and physical power are not implemented. Office now has a
+software EQ and USB audio routing; see [OFFICE.md](OFFICE.md).
 
 The X7 API requires a random bearer token in `/etc/x7-api.env` (root readable)
 and the Gallery Homebridge platform config. Tokens and HomeKit pairing data
@@ -43,8 +47,10 @@ https://github.com/mikebrady/nqptp
 Configure flags: `--sysconfdir=/etc --with-alsa --with-soxr --with-avahi
 --with-ssl=openssl --with-systemd-startup --with-airplay-2`.
 The AirPlay receiver is named **Office** (the device remains a Sound Blaster X7).
-Use `config/x7-shairport-sync.conf` at `/etc/shairport-sync.conf`.
-It selects `hw:CARD=X7,DEV=0` and the `Speaker` hardware mixer by stable name.
+The original direct ALSA fallback is `config/x7-shairport-sync.conf`.
+Office now uses `config/office-shairport-pipewire.conf` at `/etc/shairport-sync.conf`
+with the additional `--with-pipewire` build flag.
+The fallback selects `hw:CARD=X7,DEV=0` and the `Speaker` hardware mixer by stable name.
 The upstream systemd units run the audio/timing services with limited privileges.
 
 ## Deployment and recovery

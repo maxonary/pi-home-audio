@@ -5,10 +5,29 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {"type": "string", "default": "Pi Home Audio"},
-      "galleryLight": {"type": "boolean", "title": "Enable Gallery USB light", "default": true},
-      "x7Host": {"type": "string", "title": "X7 API URL", "default": "http://192.168.2.132:8100"},
-      "x7Token": {"type": "string", "title": "X7 API bearer token"}
+      "name": {
+        "type": "string",
+        "default": "Pi Home Audio"
+      },
+      "galleryLight": {
+        "type": "boolean",
+        "title": "Enable Gallery USB light",
+        "default": true
+      },
+      "x7Host": {
+        "type": "string",
+        "title": "X7 API URL",
+        "default": "http://192.168.2.132:8100"
+      },
+      "x7Token": {
+        "type": "string",
+        "title": "X7 API bearer token"
+      },
+      "officeEQ": {
+        "type": "boolean",
+        "title": "Enable Office EQ preset switches",
+        "default": false
+      }
     }
   }
 }

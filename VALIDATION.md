@@ -68,3 +68,23 @@ logs volume and stream diagnostics to the journal.
 Repeated grouped playback/switching and audible synchronization require the
 user's next listening test; service health alone does not prove the intermittent
 problem is resolved. The upgrade script's shell syntax was checked before use.
+
+## Office USB-C input and EQ, 2026-10-15
+
+See OFFICE.md for the deployed routing, service paths and recovery. PipeWire
+1.4.2 / WirePlumber 0.5.8 installed; Shairport 5.6 rebuilt with native PipeWire.
+UAC2 stereo 24-bit/48 kHz gadget and complete graph created. Silent PCM stream
+reached X7 at 48 kHz. Priority was corrected so X7 drives the graph even without
+a connected USB host; subsequent pw-top snapshot showed zero graph errors.
+Hardware mixer isolation was corrected at the ALSA device level; X7 remained
+69%, unmuted through reboot and audio-server restart. No supply undervoltage.
+
+All Office system and user audio services recovered after reboot. Speech EQ
+persisted through reboot; Flat persisted through PipeWire restart. Verified
+actual channel attenuation for Speech at -2 dB. API returned 200 for reads and
+presets, 400 for out-of-range gains, 401 without authentication. Homebridge
+registered three Office EQ switches, and the actual homebridge user read/write
+tests changed Night then restored Flat. Existing volume read/write still works.
+
+No Tailscale or agent software installed. Mac not connected yet: enumeration,
+Mac-powered stability, audible USB/AirPlay and multiroom sync remain unverified.

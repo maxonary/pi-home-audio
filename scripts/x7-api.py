@@ -22,6 +22,15 @@ def state(output):
         raise RuntimeError('X7 speaker mixer unavailable')
     return {'volume': int(match[1]), 'muted': match[2] == 'off'}
 
+def equalizer(body=None):
+    result = subprocess.run(['/usr/local/bin/office-eq',
+                             'get' if body is None else json.dumps(body)],
+                            capture_output=True, text=True, timeout=10)
+    if result.returncode == 2:
+        raise ValueError(json.loads(result.stdout)['error'])
+    result.check_returncode()
+    return json.loads(result.stdout)
+
 class Handler(BaseHTTPRequestHandler):
     def reply(self, status, body):
         data = json.dumps(body).encode()
@@ -37,11 +46,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self.authorized():
             return self.reply(401, {'error': 'Unauthorized'})
-        if self.path != '/state':
+        if self.path not in ('/state', '/eq'):
             return self.reply(404, {'error': 'Not found'})
         try:
             with LOCK:
-                result = state(mixer())
+                result = equalizer() if self.path == '/eq' else state(mixer())
             self.reply(200, result)
         except (OSError, subprocess.SubprocessError, RuntimeError):
             self.reply(503, {'error': 'X7 unavailable'})
@@ -49,13 +58,19 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.authorized():
             return self.reply(401, {'error': 'Unauthorized'})
-        if self.path != '/state':
+        if self.path not in ('/state', '/eq'):
             return self.reply(404, {'error': 'Not found'})
         try:
             length = int(self.headers.get('Content-Length', '0'))
             if not 0 < length <= 1024:
                 raise ValueError('Invalid body size')
             body = json.loads(self.rfile.read(length))
+            if self.path == '/eq':
+                if not isinstance(body, dict):
+                    raise ValueError('Expected EQ settings object')
+                with LOCK:
+                    result = equalizer(body)
+                return self.reply(200, result)
             if not isinstance(body, dict) or not body or set(body) - {'volume', 'muted'}:
                 raise ValueError('Expected volume or muted')
             args = []

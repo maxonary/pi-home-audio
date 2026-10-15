@@ -1,0 +1,12 @@
+[Unit]
+Description=Office USB input to equalizer
+After=pipewire.service wireplumber.service
+Requires=pipewire.service
+
+[Service]
+ExecStart=/usr/bin/pw-loopback -n office.usb -c 2 -C alsa_input.platform-fe980000.usb.stereo-fallback -P office.eq -l 40
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

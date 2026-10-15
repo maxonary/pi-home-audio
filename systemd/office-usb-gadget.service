@@ -1,0 +1,13 @@
+[Unit]
+Description=Office USB-C stereo audio input
+After=systemd-modules-load.service
+Before=sound.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/office-usb-gadget start
+ExecStop=/usr/local/sbin/office-usb-gadget stop
+
+[Install]
+WantedBy=multi-user.target

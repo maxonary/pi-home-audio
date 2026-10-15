@@ -16,22 +16,22 @@ is an alternative, but only affects audio routed through it.
 
 ## Mac USB audio through Pi 4
 
-Feasible architecture: Mac USB -> Pi 4 USB-C UAC2 audio gadget -> audio routing
-and adaptive clock resampling -> X7 on a USB-A host port. Both UAC2 and dwc2
-kernel support are present. The current boot config forces host mode
-(`otg_mode=1`, `dtoverlay=dwc2,dr_mode=host`); no gadget changes were applied.
+Office now has a USB-C UAC2 gadget named **Office USB Audio**, configured for
+stereo 24-bit / 48 kHz input. Mac playback becomes Pi capture and is routed
+through PipeWire -> Office Equalizer -> X7 on USB-A. AirPlay uses the same EQ
+sink. Both inputs can play together; pause the unused source to avoid mixing.
 
-The Mac would see a new USB audio device provided by the Pi, rather than the
-Creative X7's full vendor interface. macOS audio works through standard UAC2;
-Creative's proprietary control application would not automatically work.
-AirPlay and USB audio would need deliberate arbitration or mixing through a
-shared audio server; two direct ALSA clients cannot own the same hardware PCM
-at the same time. Latency requires measurement.
+The boot overlay is added under `[pi4]`; earlier host settings belong to cm4
+and cm5 sections and do not apply to this board. Gadget creation, live routing
+and silent X7 playback worked before reboot. Physical Mac enumeration and
+listening tests are pending. See OFFICE.md for current validation/recovery.
 
-Use the Pi 4 USB-C device port, with a sufficient and appropriate power/data
-arrangement. The X7 stays on the existing USB-A port. Do not connect a Mac to
-a Pi host USB-A socket as a substitute. The installed Pi 3B+ models do not
-offer the same straightforward USB gadget arrangement.
+The Mac sees a standard USB audio device, not the X7's proprietary control
+interface. The four USB-A sockets remain host ports. Use a USB-C data cable to
+the Mac. The Pi currently uses that same USB-C socket for power: sufficient Mac
+USB power must be established, or provide a suitable independent supply such
+as PoE. Never join two power sources with a passive splitter. Latency and
+multiroom sync need real playback verification after the routing change.
 
 References:
 - https://www.raspberrypi.com/documentation/computers/config_txt.html#otg_mode-raspberry-pi-4-only

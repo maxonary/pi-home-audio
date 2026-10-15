@@ -16,7 +16,12 @@ build)
   confdir=/etc
   test "$(hostname)" != airplay || confdir=/usr/local/etc
   autoreconf -fi
-  ./configure --sysconfdir="$confdir" --with-alsa --with-soxr --with-avahi --with-ssl=openssl --with-airplay-2 --with-metadata
+  pwflag=
+  # Preserve Office's shared DSP/USB audio backend when rebuilding.
+  if grep -q 'output_backend = "pipewire"' "$confdir/shairport-sync.conf" 2>/dev/null; then
+    pwflag=--with-pipewire
+  fi
+  ./configure --sysconfdir="$confdir" --with-alsa --with-soxr --with-avahi --with-ssl=openssl --with-airplay-2 --with-metadata $pwflag
   make -j2
   echo BUILD_READY
   ;;
