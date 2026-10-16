@@ -35,10 +35,9 @@ reported functionwifi/submodecp. Restored originalbt input, volume0, muteoff.
 No audible tone or volume increase. Temporary test server stopped afterward.
 Test implementation is network-audio-test.py (uses only Python standard library).
 
-Existing AirPlay/DAC audio route has NOT been switched to Ethernet. A continuous
-AirPlay→HTTP audio stream bridge would be needed. Samsung buffering introduces
-latency, so synchronized AirPlay grouping must be separately evaluated. Successful
-file fetching alone does not establish gapless live-stream or multiroom sync.
+The initial file test did not switch the AirPlay route. The continuous bridge
+is now enabled as documented below. Samsung buffering introduces latency, so
+synchronized AirPlay grouping and gapless behaviour still need separate evaluation.
 
 The device reported Bluetooth input initially, despite the user's description of
 an AUX connection. No assumption made that this model exposes analog AUX control.
@@ -101,3 +100,6 @@ Sources cloned for review; neither installed. This Pi currently has no active
 Homebridge service. Modernization should use verified localAPI reads, serialize
 commands, use%20 encoding, check writes and expose only verified speaker controls.
 Network audio is independent of any future Homebridge plugin.
+
+Final verified state: M7 inputwifi (network), hardware volume1/30, unmuted.
+User explicitly requested a very quiet level. No further volume increase applied.
