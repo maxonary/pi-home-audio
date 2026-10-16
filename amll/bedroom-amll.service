@@ -1,0 +1,13 @@
+[Unit]
+Description=Bedroom AMLL metadata gateway
+After=systemd-tmpfiles-setup.service
+[Service]
+User=pi
+ExecStart=/usr/bin/python3 /opt/bedroom-amll/server.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+[Install]
+WantedBy=multi-user.target
