@@ -133,3 +133,12 @@ References: [Linux UAC2](https://docs.kernel.org/usb/gadget-testing.html#uac2-fu
 [PipeWire filter chain](https://docs.pipewire.org/page_module_filter_chain.html),
 [ALSA mixer properties](https://docs.pipewire.org/page_man_pipewire-props_7.html),
 [Raspberry Pi gadget mode](https://www.raspberrypi.com/news/usb-gadget-mode-in-raspberry-pi-os-ssh-over-usb/).
+
+## X7 idle release and dedicated repository — 2026-10-16
+
+Current X7-specific documentation and configuration: https://github.com/maxonary/x7ctl
+(private). Disabled office-usb-input permanently because wired Mac input is deferred.
+That unused loopback kept the physical USB PCM open continuously. With it disabled,
+PipeWire suspends office.eq/office.x7 and closes playback when idle. A finite silent
+playback test confirmed closed → RUNNING → closed automatically. Native X7 standby
+setting and physical LED behaviour are not yet verified. Katana was not changed.
