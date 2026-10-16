@@ -1,0 +1,19 @@
+[Unit]
+Description=Samsung M7 direct Ethernet audio bridge
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=shairport-sync
+Group=shairport-sync
+RuntimeDirectory=m7-network
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+ExecStartPre=/bin/sh -c "test -p /run/m7-network/audio || mkfifo -m660 /run/m7-network/audio"
+ExecStart=/usr/bin/python3 /opt/samsung-m7/airplay-network.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+[Install]
+WantedBy=multi-user.target
