@@ -103,3 +103,39 @@ Network audio is independent of any future Homebridge plugin.
 
 Final verified state: M7 inputwifi (network), hardware volume1/30, unmuted.
 User explicitly requested a very quiet level. No further volume increase applied.
+
+## AirPlay controls native M7 volume
+
+Enabled at user's request. Shairport general.ignore_volume_control=yes keeps PCM
+at full digital level. run_this_when_volume_is_set calls /usr/local/bin/m7-airplay-volume
+(source airplay-volume.py), queuing a tiny atomic request in /run/m7-network/.
+The network bridge coalesces slider updates and sends native SetVolume/SetMute
+commands. Audio forwarding never waits on the speaker's volume HTTP response.
+AirPlay -144dB requests hardware mute. -30..0 maps linearly to0..configured maximum.
+Shairport may also mute PCM at its own mute endpoint, so unmute can still be affected
+by already buffered silence; native command latency and audio recovery are distinct.
+
+For the requested quiet setup, /etc/m7-network.json sets max_speaker_volume7 (out
+of30), matching the current speaker level. This is an intentional cap: AirPlay100%
+means M7volume7. To allow another range, edit that file (integer1..30) and restart
+m7-network and shairport-sync. Do not raise it unexpectedly during playback.
+Default on invalid/missing config remains7. No EQ or standby changes.
+
+Verified native hook path: AirPlay mute request produced M7volume7/mutedtrue;
+AirPlay0dB unmuted at7; subsequent readback confirmed7/false/networkinput. Mapping
+and invalid-input checks pass. All services active, no receiver restart loop.
+Final real slider movement should be checked by user; receiver was idle at test.
+
+No Homebridge process/service found on this Pi, hence no local volume plugin was
+removed. AirPlay volume no longer needs Homebridge. If a control exists on another
+Homebridge installation, retire that accessory there separately after identifying it.
+This is one-way control: M7 buttons/Samsung app changes don't synchronize back to
+the sender's AirPlay slider. No speculative DACP feedback implementation is claimed.
+
+Deployment additions:
+- airplay-volume.py → /usr/local/bin/m7-airplay-volume (executable)
+- m7-network.json → /etc/m7-network.json
+- updated shairport-network.conf and airplay-network.py as above
+Pre-native config retained at /var/backups/m7-network/before-native-volume.conf.
+To undo only native-volume control, restore that config and restart Shairport;
+the earlier software-attenuated Ethernet path will be restored.

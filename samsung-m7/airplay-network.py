@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Shairport S16/44.1kHz stereo FIFO to Samsung M7 HTTP WAV stream."""
-import collections,json,os,select,socket,struct,threading,time,urllib.parse,urllib.request,xml.etree.ElementTree as E,subprocess
+import collections,json,os,select,socket,struct,threading,time,urllib.parse,urllib.request,xml.etree.ElementTree as E,subprocess,math
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 FIFO='/run/m7-network/audio';PORT=8095
 cv=threading.Condition();history=collections.deque();sequence=0;generation=0;last=0;active=False;last_command=0
@@ -44,6 +45,39 @@ def start_playback(g):
  ok=command('SetUrlPlayback',args)
  with cv:stats['command']='accepted' if ok else 'no acknowledgement'
  print('M7 network playback command:',stats['command'],flush=True)
+
+
+def volume_target(db,maximum):
+ if not math.isfinite(db) or (db!=-144 and not -30<=db<=0):raise ValueError('Invalid AirPlay volume')
+ return None if db==-144 else max(0,min(maximum,int((db+30)*maximum/30+.5)))
+
+def native_volume():
+ try:
+  settings=json.loads(Path('/etc/m7-network.json').read_text())
+  maximum=settings.get('max_speaker_volume',7)
+  if type(maximum) is not int or not 1<=maximum<=30:raise ValueError('Invalid volume limit')
+ except (OSError,ValueError):maximum=7
+ with cv:stats['volumeLimit']=maximum
+ request=Path('/run/m7-network/volume-request.json');seen=None
+ # Discard a request left by an earlier Shairport session; wait for fresh control.
+ try:seen=request.stat().st_mtime_ns
+ except OSError:pass
+ while True:
+  time.sleep(.15)
+  try:
+   stamp=request.stat().st_mtime_ns
+   if stamp==seen:continue
+   seen=stamp;db=float(json.loads(request.read_text())['db']);target=volume_target(db,maximum)
+   if target is None:
+    ok=command('SetMute','<p type="str" name="mute" val="on"/>')
+   else:
+    ok=command('SetVolume','<p type="dec" name="volume" val="'+str(target)+'"/>')
+    ok=command('SetMute','<p type="str" name="mute" val="off"/>') and ok
+   with cv:
+    stats.pop('volumeError',None)
+    stats['nativeVolume']={'airplayDb':db,'requestedSpeakerVolume':target,'muted':target is None,'acknowledged':ok}
+  except (OSError,ValueError,TypeError,KeyError):
+   with cv:stats['volumeError']='Unable to apply native volume'
 
 def reader():
  global sequence,generation,last,active
@@ -94,4 +128,4 @@ class H(BaseHTTPRequestHandler):
  def log_message(self,*a):pass
 if __name__=='__main__':
  ip=local_ip();speaker=discover(ip);print('Direct Ethernet:',ip,'→',speaker,flush=True)
- server=ThreadingHTTPServer((ip,PORT),H);threading.Thread(target=reader,daemon=True).start();server.serve_forever()
+ server=ThreadingHTTPServer((ip,PORT),H);threading.Thread(target=native_volume,daemon=True).start();threading.Thread(target=reader,daemon=True).start();server.serve_forever()
