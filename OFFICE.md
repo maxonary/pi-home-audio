@@ -142,3 +142,9 @@ That unused loopback kept the physical USB PCM open continuously. With it disabl
 PipeWire suspends office.eq/office.x7 and closes playback when idle. A finite silent
 playback test confirmed closed → RUNNING → closed automatically. Native X7 standby
 setting and physical LED behaviour are not yet verified. Katana was not changed.
+
+2026-10-16: User requested no EQ controls in Homebridge. Gallery PiHomeAudio now
+has officeEQ:false; plugin unregisters cached Flat/Night/Speech accessories when
+that flag is disabled. X7 volume/mute and Gallery USB lamp remain. No EQ values
+changed during this removal. Verified current software EQ0/0/0dB, preamp0, Flat.
+Native X7 hardware EQ/SBX writes have not been applied.

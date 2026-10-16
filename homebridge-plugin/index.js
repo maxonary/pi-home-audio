@@ -50,6 +50,16 @@ class PiHomeAudio {
   }
   setup() {
     const { Service: S, Characteristic: C } = this.api.hap;
+    if (!this.config.officeEQ) {
+      for (const preset of ['flat', 'night', 'speech']) {
+        const id = this.api.hap.uuid.generate('office-eq-' + preset);
+        const accessory = this.cached.get(id);
+        if (accessory) {
+          this.api.unregisterPlatformAccessories(PLUGIN, PLATFORM, [accessory]);
+          this.cached.delete(id);
+        }
+      }
+    }
     if (this.config.galleryLight) {
       const a = this.accessory('gallery-usb-light', 'Gallery USB Light', 'Pi 3B+ USB Power');
       const s = a.getService(S.Lightbulb) || a.addService(S.Lightbulb, 'Gallery USB Light');
