@@ -139,3 +139,19 @@ Deployment additions:
 Pre-native config retained at /var/backups/m7-network/before-native-volume.conf.
 To undo only native-volume control, restore that config and restart Shairport;
 the earlier software-attenuated Ethernet path will be restored.
+
+### Local Homebridge on the Pi 2
+
+The `homebridge-plugin` directory contains `homebridge-samsung-m7-local`.
+Install it with Homebridge's bundled npm and configure accessory `SamsungM7Local`,
+name `Samsung M7`, and `maxVolume: 7`. The volume appears as a dimmer because
+Apple Home does not expose arbitrary standalone speaker volume sliders reliably.
+Its on/off control toggles native mute; brightness controls native speaker volume
+with 100% mapped to the configured cap (7 of 30 by default). Network and Bluetooth
+switches select the speaker input. Turning an input switch off does nothing;
+select the other input to change it. State refreshes every ten seconds.
+AUX and SoundShare are not exposed until verified on this hardware.
+
+Switching to Network selects the input; it does not start an AirPlay session.
+Active AirPlay may reclaim the network input. Pair Homebridge once via the UI
+at `http://192.168.178.99:8581`, then add its controls to the desired Home room.

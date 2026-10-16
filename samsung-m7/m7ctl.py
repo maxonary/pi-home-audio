@@ -19,8 +19,11 @@ def get(host,name,field):
 
 def status(host):return {'host':host,'name':get(host,'GetSpkName','spkname'),'volume':int(get(host,'GetVolume','volume')),'muted':get(host,'GetMute','mute')=='on','input':get(host,'GetFunc','function')}
 if __name__=='__main__':
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--host',default='169.254.90.130');sub=p.add_subparsers(dest='action',required=True);sub.add_parser('status');v=sub.add_parser('volume');v.add_argument('value',type=int,choices=range(31));m=sub.add_parser('mute');m.add_argument('value',choices=['on','off']);a=p.parse_args()
- if a.action=='volume':
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--host',default='169.254.90.130');sub=p.add_subparsers(dest='action',required=True);sub.add_parser('status');v=sub.add_parser('volume');v.add_argument('value',type=int,choices=range(31));m=sub.add_parser('mute');m.add_argument('value',choices=['on','off']);i=sub.add_parser('input');i.add_argument('value',choices=['wifi','bt','aux','soundshare']);a=p.parse_args()
+ if a.action=='input':
+  request(a.host,'SetFunc','<p type="str" name="function" val="'+a.value+'"/>',True)
+  if get(a.host,'GetFunc','function')!=a.value:raise RuntimeError('Input change not confirmed')
+ elif a.action=='volume':
   request(a.host,'SetVolume','<p type="dec" name="volume" val="'+str(a.value)+'"/>',True)
   if int(get(a.host,'GetVolume','volume'))!=a.value:raise RuntimeError('Volume change not confirmed')
  elif a.action=='mute':

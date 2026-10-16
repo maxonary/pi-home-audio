@@ -1,0 +1,1 @@
+{"name":"homebridge-samsung-m7-local","version":"1.0.0","main":"index.js","keywords":["homebridge-plugin"],"engines":{"node":">=18","homebridge":">=1.8.0"}}
