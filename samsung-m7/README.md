@@ -155,3 +155,12 @@ AUX and SoundShare are not exposed until verified on this hardware.
 Switching to Network selects the input; it does not start an AirPlay session.
 Active AirPlay may reclaim the network input. Pair Homebridge once via the UI
 at `http://192.168.178.99:8581`, then add its controls to the desired Home room.
+
+Installed 2026-10-16 using the official Homebridge apt repository: package
+2.0.20, Node 22.23.3, Homebridge 2.4.0 on Raspbian Bullseye armhf. Service
+`homebridge` starts on boot. Plugin source lives in
+`/opt/samsung-m7/homebridge-plugin`, installed with bundled npm into
+`/var/lib/homebridge`; config is `/var/lib/homebridge/config.json`. Bridge
+name is `Homebridge Bruderreich`, advertising on `wlan0`. The previous default
+config is backed up at `config.pre-m7.json`. UI login creation and Apple Home
+pairing are completed by the owner. No other home's bridges were changed.
