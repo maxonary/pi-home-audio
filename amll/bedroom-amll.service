@@ -8,6 +8,7 @@ Restart=always
 RestartSec=3
 NoNewPrivileges=true
 ProtectSystem=strict
+ReadWritePaths=/var/lib/bedroom-amll
 ProtectHome=read-only
 [Install]
 WantedBy=multi-user.target

@@ -2,10 +2,20 @@
 """Local-only Shairport metadata gateway for Bedroom's AMLL display."""
 import base64,json,os,plistlib,re,threading,time,xml.etree.ElementTree as ET
 from collections import Counter
+from urllib.parse import urlparse
 from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
 from pathlib import Path
 ROOT=Path(os.environ.get('AMLL_ROOT','/home/pi/shairport-metadata-display/public/amll'))
 FIFO='/run/bedroom-now-playing/metadata'
+SETTINGS_FILE=Path(os.environ.get('AMLL_SETTINGS','/var/lib/bedroom-amll/display.json'))
+def validate_settings(value):
+ if not isinstance(value,dict) or set(value)!={'rotation','layout'}:raise ValueError('Expected rotation and layout')
+ if type(value['rotation']) is not int or value['rotation'] not in (0,90,180,270):raise ValueError('Rotation must be 0, 90, 180 or 270')
+ if value['layout'] not in ('auto','landscape','portrait'):raise ValueError('Layout must be auto, landscape or portrait')
+ return value
+try:display=validate_settings(json.loads(SETTINGS_FILE.read_text()))
+except (OSError,ValueError):display={'rotation':0,'layout':'auto'}
+
 state={'title':'','artist':'','album':'','playing':False,'elapsed':0,'duration':0,'art':0,'timing':False,'session':False}
 lock=threading.RLock();art=b'';at=time.monotonic();counts=Counter();last_received=None
 
@@ -81,15 +91,29 @@ class Handler(SimpleHTTPRequestHandler):
  def __init__(self,*a,**kw):super().__init__(*a,directory=str(ROOT),**kw)
  def do_GET(self):
   path=self.path.split('?')[0]
-  if path in ('/state','/art','/diagnostics'):
+  if path in ('/state','/art','/diagnostics','/settings'):
    with lock:
-    snapshot={**state,'elapsed':elapsed()}
-    payload=snapshot if path=='/state' else {'codes':dict(counts),'lastReceived':last_received}
+    snapshot={**state,'elapsed':elapsed(),'display':dict(display)}
+    payload=snapshot if path=='/state' else dict(display) if path=='/settings' else {'codes':dict(counts),'lastReceived':last_received}
     data=art if path=='/art' else json.dumps(payload).encode()
    self.send_response(200);self.send_header('Content-Type',('image/png' if data.startswith(b'\x89PNG') else 'image/jpeg') if path=='/art' else 'application/json');self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data)
   else:
    if path in ('/','/amll/'):self.path='/index.html'
    super().do_GET()
+ def do_POST(self):
+  global display
+  if self.path!='/settings':self.send_error(404);return
+  origin=self.headers.get('Origin')
+  if origin and urlparse(origin).netloc!=self.headers.get('Host'):self.send_error(403);return
+  try:
+   length=int(self.headers.get('Content-Length','0'))
+   if not 0<length<=1024:raise ValueError('Invalid body length')
+   settings=validate_settings(json.loads(self.rfile.read(length)))
+   with lock:
+    temp=SETTINGS_FILE.with_suffix('.tmp');temp.write_text(json.dumps(settings));temp.replace(SETTINGS_FILE);display=settings
+   data=json.dumps(settings).encode();self.send_response(200);self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(data)
+  except (ValueError,TypeError):self.send_error(400,'Invalid display settings')
+  except OSError:self.send_error(503,'Unable to save display settings')
  def log_message(self,*args):pass
 if __name__=='__main__':
  threading.Thread(target=reader,daemon=True).start();ThreadingHTTPServer(('127.0.0.1',3600),Handler).serve_forever()

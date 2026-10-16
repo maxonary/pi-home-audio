@@ -26,3 +26,11 @@ Current gateway starts with empty state; no fake tracks are injected on the Pi.
 Rollback: stop/disable bedroom-amll, enable/start shairport-display, restore
 bedroom-display unit After/Wants shairport-display.service, then restart kiosk.
 The prior frontend bundle is in git history; rebuild prior fork commit if needed.
+
+Rotation settings: /settings.html saves to /var/lib/bedroom-amll/display.json.
+Create folder with sudo install -d -o pi -g pi -m750 /var/lib/bedroom-amll.
+Service needs ReadWritePaths=/var/lib/bedroom-amll (installed settings.conf drop-in).
+Defaults remain0degrees/auto. All connected screens refresh saved rotation/layout
+through the state snapshot; no kiosk restart needed. Preview links don't save.
+Portrait composition stacks artwork above metadata and adapts logical viewport
+units when rotated90/270degrees. Settings UI itself stays upright remotely.
