@@ -1,23 +1,52 @@
 const {execFile}=require('node:child_process');
-module.exports=api=>api.registerAccessory('SamsungM7Local',M7);
-class M7 {
+const PLUGIN='homebridge-samsung-m7-local';
+module.exports=api=>api.registerPlatform(PLUGIN,'SamsungM7Local',class {
  constructor(log,config,api){
-  this.log=log;this.name=config.name||'Samsung M7';this.cap=Math.min(30,Math.max(1,config.maxVolume||7));
-  const S=api.hap.Service,C=api.hap.Characteristic;this.services=[];
-  const info=new S.AccessoryInformation();info.setCharacteristic(C.Manufacturer,'Samsung').setCharacteristic(C.Model,'WAM750');this.services.push(info);
-  const volume=new S.Lightbulb(this.name+' Volume','volume');
-  volume.getCharacteristic(C.On).onGet(async()=>!(await this.state()).muted).onSet(v=>this.run('mute',v?'off':'on'));
-  volume.getCharacteristic(C.Brightness).onGet(async()=>Math.min(100,Math.round((await this.state()).volume/this.cap*100))).onSet(v=>this.run('volume',String(Math.round(v/100*this.cap))));this.services.push(volume);
-  for(const [label,id] of [['Network','wifi'],['Bluetooth','bt']]){
-   const input=new S.Switch(this.name+' '+label,id);
-   input.getCharacteristic(C.On).onGet(async()=>(await this.state()).input===id).onSet(async on=>{if(on)await this.run('input',id);});this.services.push(input);
-  }
-  this.timer=setInterval(()=>this.state(true).then(s=>{
-   volume.updateCharacteristic(C.On,!s.muted).updateCharacteristic(C.Brightness,Math.min(100,Math.round(s.volume/this.cap*100)));
-   this.services[2].updateCharacteristic(C.On,s.input==='wifi');this.services[3].updateCharacteristic(C.On,s.input==='bt');
-  }).catch(e=>log.debug(e.message)),10000);this.timer.unref();
+  api.on('didFinishLaunching',()=>{
+   const accessory=new api.platformAccessory(config.name||'Samsung M7',api.hap.uuid.generate('samsung-m7-local-receiver-v1'),api.hap.Categories.AUDIO_RECEIVER);
+   this.controller=new M7(log,config,api,accessory);
+   api.publishExternalAccessories(PLUGIN,[accessory]);
+  });
+  api.on('shutdown',()=>{if(this.controller)clearInterval(this.controller.timer);});
  }
- run(...args){return new Promise((resolve,reject)=>execFile('/usr/local/bin/m7ctl',args,{timeout:20000},(err,out)=>{if(err)return reject(err);try{this.cached=JSON.parse(out);this.at=Date.now();resolve(this.cached);}catch(e){reject(e);}}));}
+ configureAccessory(){}
+});
+class M7 {
+ constructor(log,config,api,accessory){
+  this.log=log;this.name=config.name||'Samsung M7';this.cap=Math.min(30,Math.max(1,config.maxVolume||7));
+  const S=api.hap.Service,C=api.hap.Characteristic;this.C=C;
+  accessory.getService(S.AccessoryInformation).setCharacteristic(C.Manufacturer,'Samsung').setCharacteristic(C.Model,'WAM750').setCharacteristic(C.SerialNumber,'M7-Ethernet');
+  this.tv=accessory.addService(S.Television,this.name,'receiver');this.tv.setPrimaryService();
+  this.tv.setCharacteristic(C.ConfiguredName,this.name).setCharacteristic(C.SleepDiscoveryMode,C.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
+  // The supported native control is mute, not an unverified standby command.
+  this.tv.getCharacteristic(C.Active).onGet(async()=>!(await this.state()).muted?C.Active.ACTIVE:C.Active.INACTIVE).onSet(async v=>{await this.run('mute',v===C.Active.ACTIVE?'off':'on');});
+  this.tv.getCharacteristic(C.ActiveIdentifier).onGet(async()=>this.inputID((await this.state()).input)).onSet(v=>{
+   const input={1:'wifi',2:'bt'}[v];if(!input)throw new Error('Unsupported input');return this.run('input',input).then(()=>{});
+  });
+  this.tv.getCharacteristic(C.RemoteKey).onSet(async v=>{
+   if(v===C.RemoteKey.ARROW_UP)await this.adjust(1);
+   else if(v===C.RemoteKey.ARROW_DOWN)await this.adjust(-1);
+   else if(v===C.RemoteKey.PLAY_PAUSE)await this.run('mute',(await this.state()).muted?'off':'on');
+  });
+  this.speaker=accessory.addService(S.TelevisionSpeaker,this.name+' Speaker','speaker');
+  this.speaker.setCharacteristic(C.Active,C.Active.ACTIVE).setCharacteristic(C.VolumeControlType,C.VolumeControlType.ABSOLUTE);
+  this.speaker.getCharacteristic(C.Mute).onGet(async()=>(await this.state()).muted).onSet(async v=>{await this.run('mute',v?'on':'off');});
+  this.speaker.getCharacteristic(C.Volume).onGet(async()=>this.percent((await this.state()).volume)).onSet(async v=>{await this.run('volume',String(Math.round(v/100*this.cap)));});
+  this.speaker.getCharacteristic(C.VolumeSelector).onSet(v=>this.adjust(v===C.VolumeSelector.INCREMENT?1:-1));this.tv.addLinkedService(this.speaker);
+  for(const [id,label] of [[1,'Network / AirPlay'],[2,'Bluetooth']]){
+   const input=accessory.addService(S.InputSource,label,'input-'+id);
+   input.setCharacteristic(C.Identifier,id).setCharacteristic(C.ConfiguredName,label).setCharacteristic(C.IsConfigured,C.IsConfigured.CONFIGURED).setCharacteristic(C.InputSourceType,C.InputSourceType.OTHER).setCharacteristic(C.CurrentVisibilityState,C.CurrentVisibilityState.SHOWN);
+   this.tv.addLinkedService(input);
+  }
+  this.timer=setInterval(()=>this.state(true).then(s=>this.update(s)).catch(e=>log.debug(e.message)),10000);this.timer.unref();
+ }
+ inputID(input){return {wifi:1,bt:2}[input]||0;}
+ percent(volume){return Math.min(100,Math.round(volume/this.cap*100));}
+ update(s){const C=this.C;this.tv.updateCharacteristic(C.Active,s.muted?C.Active.INACTIVE:C.Active.ACTIVE).updateCharacteristic(C.ActiveIdentifier,this.inputID(s.input));this.speaker.updateCharacteristic(C.Mute,s.muted).updateCharacteristic(C.Volume,this.percent(s.volume));}
+ async adjust(delta){const s=await this.state(true);await this.run('volume',String(Math.min(this.cap,Math.max(0,s.volume+delta))));}
+ run(...args){
+  const call=()=>new Promise((resolve,reject)=>execFile('/usr/local/bin/m7ctl',args,{timeout:20000},(err,out)=>{if(err)return reject(err);try{this.cached=JSON.parse(out);this.at=Date.now();this.update(this.cached);resolve(this.cached);}catch(e){reject(e);}}));
+  const result=(this.queue||Promise.resolve()).then(call);this.queue=result.catch(()=>{});return result;
+ }
  state(force=false){if(!force&&this.cached&&Date.now()-this.at<3000)return Promise.resolve(this.cached);if(!this.pending)this.pending=this.run('status').finally(()=>this.pending=null);return this.pending;}
- getServices(){return this.services;}
 }

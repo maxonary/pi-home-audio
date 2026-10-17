@@ -143,18 +143,26 @@ the earlier software-attenuated Ethernet path will be restored.
 ### Local Homebridge on the Pi 2
 
 The `homebridge-plugin` directory contains `homebridge-samsung-m7-local`.
-Install it with Homebridge's bundled npm and configure accessory `SamsungM7Local`,
-name `Samsung M7`, and `maxVolume: 7`. The volume appears as a dimmer because
-Apple Home does not expose arbitrary standalone speaker volume sliders reliably.
-Its on/off control toggles native mute; brightness controls native speaker volume
-with 100% mapped to the configured cap (7 of 30 by default). Network and Bluetooth
-switches select the speaker input. Turning an input switch off does nothing;
-select the other input to change it. State refreshes every ten seconds.
-AUX and SoundShare are not exposed until verified on this hardware.
+Version 1.1.0 replaces the original dimmer and switches with an external HomeKit
+audio receiver, using the same Television/InputSource pattern as the Katana.
+Configure platform `SamsungM7Local`, name `Samsung M7`, and `maxVolume: 7`.
+Its input menu contains **Network / AirPlay** and **Bluetooth**. Native volume,
+mute and remote volume steps are exposed through TelevisionSpeaker. Apple's
+Home/Remote apps decide where these controls appear; this does not guarantee
+an on-screen volume slider in every Apple client. No Lightbulb or Switch
+services remain. On/off maps to native mute/unmute, not hardware standby.
 
-Switching to Network selects the input; it does not start an AirPlay session.
-Active AirPlay may reclaim the network input. Pair Homebridge once via the UI
-at `http://192.168.178.99:8581`, then add its controls to the desired Home room.
+The receiver is published externally and must be paired separately once:
+Home > Add Accessory > More Options > Samsung M7, using this Homebridge's
+pairing code. Keep the existing Homebridge pairing; the old grouped tiles are
+removed from its accessory list automatically. Configuration and pairing
+backups are in `/var/backups/m7-homekit/`.
+
+The native volume cap stays 7/30. State refreshes every ten seconds.
+AUX and SoundShare are not exposed until verified on this hardware.
+Selecting Network does not start music; select the Pi's AirPlay destination
+on the source device. Active AirPlay may reclaim network input.
+UI: `http://192.168.178.99:8581`.
 
 Installed 2026-10-16 using the official Homebridge apt repository: package
 2.0.20, Node 22.23.3, Homebridge 2.4.0 on Raspbian Bullseye armhf. Service
