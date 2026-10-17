@@ -146,7 +146,7 @@ The `homebridge-plugin` directory contains `homebridge-samsung-m7-local`.
 Version 1.1.0 replaces the original dimmer and switches with an external HomeKit
 audio receiver, using the same Television/InputSource pattern as the Katana.
 Configure platform `SamsungM7Local`, name `Samsung M7`, and `maxVolume: 7`.
-Its input menu contains **Network / AirPlay** and **Bluetooth**. Native volume,
+Its input menu contains **AirPlay** and **Bluetooth**. Native volume,
 mute and remote volume steps are exposed through TelevisionSpeaker. Apple's
 Home/Remote apps decide where these controls appear; this does not guarantee
 an on-screen volume slider in every Apple client. The receiver itself has no Lightbulb or Switch services. Version 1.2.0 adds a

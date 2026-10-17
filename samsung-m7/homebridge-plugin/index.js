@@ -35,7 +35,7 @@ class M7 {
   this.speaker.getCharacteristic(C.Mute).onGet(async()=>(await this.state()).muted).onSet(async v=>{await this.run('mute',v?'on':'off');});
   this.speaker.getCharacteristic(C.Volume).onGet(async()=>this.percent((await this.state()).volume)).onSet(async v=>{await this.run('volume',String(Math.round(v/100*this.cap)));});
   this.speaker.getCharacteristic(C.VolumeSelector).onSet(v=>this.adjust(v===C.VolumeSelector.INCREMENT?1:-1));this.tv.addLinkedService(this.speaker);
-  for(const [id,label] of [[1,'Network / AirPlay'],[2,'Bluetooth']]){
+  for(const [id,label] of [[1,'AirPlay'],[2,'Bluetooth']]){
    const input=accessory.addService(S.InputSource,label,'input-'+id);
    input.setCharacteristic(C.Identifier,id).setCharacteristic(C.ConfiguredName,label).setCharacteristic(C.IsConfigured,C.IsConfigured.CONFIGURED).setCharacteristic(C.InputSourceType,C.InputSourceType.OTHER).setCharacteristic(C.CurrentVisibilityState,C.CurrentVisibilityState.SHOWN);
    this.tv.addLinkedService(input);
