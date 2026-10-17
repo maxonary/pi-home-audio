@@ -149,8 +149,14 @@ Configure platform `SamsungM7Local`, name `Samsung M7`, and `maxVolume: 7`.
 Its input menu contains **Network / AirPlay** and **Bluetooth**. Native volume,
 mute and remote volume steps are exposed through TelevisionSpeaker. Apple's
 Home/Remote apps decide where these controls appear; this does not guarantee
-an on-screen volume slider in every Apple client. No Lightbulb or Switch
-services remain. On/off maps to native mute/unmute, not hardware standby.
+an on-screen volume slider in every Apple client. The receiver itself has no Lightbulb or Switch services. Version 1.2.0 adds a
+separate bridged **M7 Volume** dimmer accessory for a visible volume slider in
+Apple Home; its on/off control mutes/unmutes. It polls actual speaker volume
+every ten seconds, including changes from AirPlay and physical buttons. This
+does not update the source Mac/iPhone AirPlay slider in the reverse direction.
+The dimmer uses Lightbulb/Brightness because Apple Home requires that service
+for this standalone slider; it is clearly named M7 Volume. It appears through
+the existing bridge without another pairing. On/off maps to native mute/unmute, not hardware standby.
 
 The receiver is published externally and must be paired separately once:
 Home > Add Accessory > More Options > Samsung M7, using this Homebridge's
