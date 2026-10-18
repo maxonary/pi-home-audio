@@ -108,3 +108,25 @@ Build dependencies follow upstream BUILD.md. The install deliberately copies
 binaries rather than replacing existing service/configuration files with
 upstream sample files. Shell syntax was checked locally; all runtime and
 playback validation is recorded in VALIDATION.md.
+
+### Gallery Creative DAC migration (2026-10-18)
+
+Gallery now outputs through the Sound Blaster Play! 2 (`hw:CARD=S2,DEV=0`),
+using its `Speaker` hardware mixer. Its native format is stereo S16_LE/44100.
+The initial maximum is conservatively capped at -20 dB, matching the DAC's
+observed pre-migration level. The Geneva line-in cable must connect to the DAC's
+headphone output rather than the Pi's analogue socket.
+
+All external USB sockets share power on this Pi 3B+. Both USB lamps and the DAC
+therefore cannot be switched independently using the onboard hub. The file
+`/etc/gallery-usb-dac-active` makes `gallery-light off` fail with an explanatory
+error instead of cutting DAC power; on/status remain available. This means the
+existing light tile cannot turn the lamps off while the DAC is installed.
+Do not remove that guard until lamp power is moved to independently controlled
+hardware. A separate sunset-lamp accessory has not been added for this reason.
+
+Backup: `/var/backups/pi-home-audio/gallery-usb-dac/`. Validation: ALSA silent
+playback accepted, DAC remained connected when power-off guard was exercised,
+and Shairport/Homebridge active. Audible playback remains to be confirmed by
+the owner. After the power cycle the current undervoltage flags were zero;
+previous-boot journal was not persistent, so the earlier outage cause is unknown.

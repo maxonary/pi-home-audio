@@ -1,6 +1,10 @@
 #!/bin/sh
 # Pi 3B+: external USB sockets share power; never switch hub port 1.
 set -eu
+if [ "${1:-}" = off ] && [ -e /etc/gallery-usb-dac-active ]; then
+  echo 'USB power-off blocked: Gallery USB ports share power with the audio DAC. Use a per-port switching hub for the lamps.' >&2
+  exit 1
+fi
 case "${1:-}" in
   on|off) exec /usr/sbin/uhubctl -l 1-1 -p 2 -a "$1" ;;
   status) exec /usr/sbin/uhubctl -l 1-1 -p 2 ;;
