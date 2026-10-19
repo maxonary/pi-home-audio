@@ -165,3 +165,16 @@ Office rollback files: `/var/backups/office-audio/airplay-volume/`. Current
 checks: services active, X7 excluded from PipeWire, PCM closed when idle, native
 mixer retained at -20 dB, and USB switching removed. Live AirPlay-to-hardware
 volume movement and listening confirmation remain pending owner testing.
+
+### Gallery and Bedroom software volume — 2026-10-19
+
+Following the owner's request to decouple the other rooms as well, both receivers
+now use Shairport software volume: their ALSA mixer device/control settings were
+removed. The DACs remain the playback devices. Gallery's S2 hardware mixer is
+fixed at its original conservative -20 dB level (32/52), unmuted; software maximum
+is 0 dB, so total maximum remains -20 dB. Bedroom retained its observed Katana
+hardware level (115/128, -6.5 dB). Hardware mixer states were saved with alsactl.
+AirPlay no longer changes these hardware mixer levels or mute switches. Separate
+speaker/HomeKit hardware controls can still change them. Backups on each Pi are
+`/var/backups/pi-home-audio/shairport-before-software-volume.conf`.
+Both services restarted successfully; audible playback awaits owner confirmation.
