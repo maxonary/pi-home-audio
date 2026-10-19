@@ -9,11 +9,6 @@
         "type": "string",
         "default": "Pi Home Audio"
       },
-      "galleryLight": {
-        "type": "boolean",
-        "title": "Enable Gallery USB light",
-        "default": true
-      },
       "x7Host": {
         "type": "string",
         "title": "X7 API URL",

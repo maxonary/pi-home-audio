@@ -1,7 +1,4 @@
 'use strict';
-const { execFile } = require('node:child_process');
-const { promisify } = require('node:util');
-const run = promisify(execFile);
 const PLUGIN = 'homebridge-pi-home-audio';
 const PLATFORM = 'PiHomeAudio';
 
@@ -31,13 +28,6 @@ class PiHomeAudio {
       .setCharacteristic(C.SerialNumber, id);
     return a;
   }
-  async light(action) {
-    const { stdout } = await run('/usr/bin/sudo', ['-n', '/usr/local/sbin/gallery-light', action], { timeout: 6000 });
-    const match = stdout.match(/Port 2:\s+([0-9a-f]+)/i);
-    if (!match) throw new Error('USB power status unavailable');
-    // With mutations uhubctl prints both old and new status; callers reread.
-    return (parseInt(match[1], 16) & 0x100) !== 0;
-  }
   async x7(body, path = '/state') {
     const response = await fetch(this.config.x7Host + path, {
       method: body ? 'POST' : 'GET',
@@ -60,13 +50,12 @@ class PiHomeAudio {
         }
       }
     }
-    if (this.config.galleryLight) {
-      const a = this.accessory('gallery-usb-light', 'Gallery USB Light', 'Pi 3B+ USB Power');
-      const s = a.getService(S.Lightbulb) || a.addService(S.Lightbulb, 'Gallery USB Light');
-      s.getCharacteristic(C.On)
-        .onGet(() => this.light('status'))
-        .onSet(async value => { await this.light(value ? 'on' : 'off'); });
-      this.log.info('Gallery USB Light registered');
+    // Remove the retired USB power accessory without changing pairing identity.
+    const oldLight = this.cached.get(this.api.hap.uuid.generate('gallery-usb-light'));
+    if (oldLight) {
+      this.api.unregisterPlatformAccessories(PLUGIN, PLATFORM, [oldLight]);
+      this.cached.delete(oldLight.UUID);
+      this.log.info('Removed Gallery USB light switching');
     }
     if (this.config.x7Host && this.config.x7Token) {
       const a = this.accessory('sound-blaster-x7-volume', 'X7 Volume', 'Sound Blaster X7');

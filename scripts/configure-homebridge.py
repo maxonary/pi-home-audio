@@ -12,7 +12,7 @@ shutil.copy2(path, backup)
 token = Path('/home/pi/.x7-api.env').read_text().strip().split('=', 1)[1]
 platform = {
     'platform': 'PiHomeAudio', 'name': 'Pi Home Audio',
-    'galleryLight': True, 'x7Host': 'http://192.168.2.132:8100', 'x7Token': token,
+    'x7Host': 'http://192.168.2.132:8100', 'x7Token': token,
 }
 platforms = config.setdefault('platforms', [])
 for i, old in enumerate(platforms):

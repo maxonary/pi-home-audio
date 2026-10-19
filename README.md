@@ -30,14 +30,13 @@ and the Gallery Homebridge platform config. Tokens and HomeKit pairing data
 must never be committed. Port 8100 is intended for a trusted LAN; HTTP is
 unencrypted. Do not expose it to the Internet.
 
-## USB light
+## USB light switching — removed 2026-10-19
 
-`scripts/gallery-light on|off|status` fixes the USB hub/port to `1-1`, port `2`.
-On Pi 3B+ all external USB sockets share power, so this switches them together.
-It does not switch the internal Ethernet controller's port. Gallery currently
-has no enumerated external USB data devices and uses Wi-Fi.
-Only this root-owned helper is allowed via passwordless sudo for Homebridge.
-Physical light operation requires visual confirmation.
+Gallery's USB light accessory, helper command and sudo permission have been
+removed. Existing cached light accessories are unregistered while preserving
+other HomeKit pairing data. USB power remains on for both lamps and the DAC.
+The repository's old helper is now a non-switching error stub. Independent lamp
+control requires separate switching hardware.
 
 ## AirPlay on pi4
 
@@ -130,3 +129,30 @@ playback accepted, DAC remained connected when power-off guard was exercised,
 and Shairport/Homebridge active. Audible playback remains to be confirmed by
 the owner. After the power cycle the current undervoltage flags were zero;
 previous-boot journal was not persistent, so the earlier outage cause is unknown.
+
+
+## Direct AirPlay hardware volume — 2026-10-19
+
+The intended control is AirPlay → output-device hardware volume, not a new
+HomeKit → AirPlay remote-control link.
+
+- Gallery already uses the S2 `Speaker` hardware mixer; native hardware mute is
+  enabled too. The -20 dB maximum is preserved.
+- Office now uses `config/office-shairport-alsa.conf`: direct X7 ALSA PCM plus
+  its native `Speaker` volume/mute. PipeWire no longer owns this card, via
+  `config/office-x7-direct-alsa.conf` under WirePlumber's config directory.
+  The former software EQ was flat (0/0/0) and is bypassed; hardware EQ/SBX is
+  untouched. The initial maximum is -20 dB, matching the previously observed
+  hardware level. No new D-Bus receiver binary was deployed.
+- Bedroom already uses Katana's native `Speakers` mixer and was not changed.
+
+X7 HomeKit/API controls still address the same native hardware mixer. Sender
+sliders are not promised to update when the hardware/API is changed elsewhere;
+that reverse synchronization depends on the AirPlay source. Likewise the same
+percentage in HomeKit and AirPlay is not guaranteed to represent the same
+level, because their ranges/scales differ.
+
+Office rollback files: `/var/backups/office-audio/airplay-volume/`. Current
+checks: services active, X7 excluded from PipeWire, PCM closed when idle, native
+mixer retained at -20 dB, and USB switching removed. Live AirPlay-to-hardware
+volume movement and listening confirmation remain pending owner testing.

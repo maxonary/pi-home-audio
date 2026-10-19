@@ -1,9 +1,14 @@
 {
   "name": "homebridge-pi-home-audio",
-  "version": "0.2.0",
-  "description": "Gallery USB light and Sound Blaster X7 volume controls",
+  "version": "0.3.0",
+  "description": "Sound Blaster X7 hardware volume controls",
   "main": "index.js",
-  "keywords": ["homebridge-plugin"],
-  "engines": {"node": ">=20", "homebridge": "^1.8.0 || ^2.0.0"},
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "node": ">=20",
+    "homebridge": "^1.8.0 || ^2.0.0"
+  },
   "license": "MIT"
 }
