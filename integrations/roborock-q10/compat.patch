@@ -1,0 +1,60 @@
+--- a/roborockLib/roborockAPI.js
++++ b/roborockLib/roborockAPI.js
+@@ -2608,6 +2608,7 @@
+   }
+ }
+ 
++require("./lib/q10").install(Roborock.prototype);
+ module.exports = { Roborock };
+ 
+ ////////////////////////////////////////////////////////////////////////////////////////////////////
+--- a/roborockLib/lib/vacuum.js
++++ b/roborockLib/lib/vacuum.js
+@@ -105,6 +105,7 @@
+   }
+ 
+   async getParameter(duid, parameter, attribute) {
++    if (require("./q10").isQ10(this.adapter, duid)) return;
+     let mode;
+ 
+     try {
+--- a/roborockLib/lib/roborock_mqtt_connector.js
++++ b/roborockLib/lib/roborock_mqtt_connector.js
+@@ -209,6 +209,8 @@
+         if (!data) {
+           return;
+         }
++        // Q10 maps are binary pushes, not the legacy photo protocol.
++        if (data.protocol === 301 && require("./q10").isQ10(this.adapter, duid)) return;
+         // this.adapter.log.debug(`MESSAGE RECEIVED for duid ${duid} with key: ${this.adapter.localKeys.get(duid)} data: ${JSON.stringify(data)} raw: ${JSON.stringify(mqttMessageParser.parse(message))} message: ${message}`);
+         // this.adapter.log.debug(`MESSAGE RECEIVED for duid ${duid} with key: ${this.adapter.localKeys.get(duid)} data: ${JSON.stringify(data.toString("hex"))} message: ${message}`);
+         // this.adapter.log.debug(`MESSAGE RECEIVED for duid ${duid} with key: ${this.adapter.localKeys.get(duid)} data: ${JSON.stringify(data)}`);
+@@ -216,6 +218,7 @@
+         // this.adapter.log.debug("Protocol: " + data.protocol);
+         if (data.protocol == 102) {
+           const parsedPayload = JSON.parse(data.payload);
++          if (require("./q10").receive(this.adapter, duid, parsedPayload)) return;
+           let dps;
+           if (typeof parsedPayload.dps["102"] != "undefined") {
+             dps = JSON.parse(parsedPayload.dps["102"]);
+@@ -429,8 +432,8 @@
+   }
+ 
+   sendMessage(duid, roborockMessage) {
+-    client.publish(`rr/m/i/${rriot.u}/${mqttUser}/${duid}`, roborockMessage, {
+-      qos: 1,
++    return new Promise((resolve, reject) => {
++      client.publish(`rr/m/i/${rriot.u}/${mqttUser}/${duid}`, roborockMessage, {qos: 1}, err => err ? reject(err) : resolve());
+     });
+   }
+ 
+--- a/dist/vacuum_accessory.js
++++ b/dist/vacuum_accessory.js
+@@ -394,6 +394,7 @@
+         }
+         catch (e) {
+             this.platform.log.error("Error setting active: " + e);
++            if (this.platform.roborockAPI.getProductAttribute(this.duid, "model") === "roborock.vacuum.ss07") throw e;
+         }
+     }
+     async getActive() {

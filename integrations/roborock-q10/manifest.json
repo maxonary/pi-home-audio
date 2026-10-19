@@ -1,0 +1,18 @@
+{
+  "roborockLib/roborockAPI.js": {
+    "original": "09489f01aef9d2978051dbdd957be530fc144c7096e3785bca12bc6a410bed2e",
+    "patched": "5519c6668d3ec083b81c3402a60089dae79ea1db601e45c45b60bd4962b238f8"
+  },
+  "roborockLib/lib/vacuum.js": {
+    "original": "fb9bb80e0e05fb827997fd78ce7c62b60858f9c1386fbcf47b68772e83bd4e7c",
+    "patched": "94c1b8748fa3fe964d85ba92ba73138f6a745520e1a66790de986812efaa48e7"
+  },
+  "roborockLib/lib/roborock_mqtt_connector.js": {
+    "original": "dd07b054949eb8f0911b8e102dd43253c8e87dd828cb8bf8bafe8afcd689ff55",
+    "patched": "aa7824cafe0920eca4456163578f3441633801f6701e53cdf62c629475962af3"
+  },
+  "dist/vacuum_accessory.js": {
+    "original": "cfba0f5857e1757703109a269afafa801f4c783d7b3655328fc136135d229bef",
+    "patched": "7f5f7f311c598ebe8b6b516081f4801a30f4fbe5f6d322e6007527fbaf09cdf9"
+  }
+}
