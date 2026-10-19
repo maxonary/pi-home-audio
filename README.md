@@ -1,5 +1,14 @@
 # Pi Home Audio
 
+## Current Office volume setup — restored 2026-10-19
+
+At the owner's request, Office uses PipeWire stream volume again. AirPlay adjusts
+its software stream; the X7 hardware volume/HomeKit control is separate. The
+active receiver config is `config/office-shairport-pipewire.conf`. The live
+WirePlumber `office-direct-alsa.conf` override was removed. Direct ALSA files
+are retained only as historical reference. USB light switching remains removed.
+
+
 Shared configuration for Maximilian's three AirPlay receivers. The Katana driver
 remains in https://github.com/maxonary/katanactl.
 
