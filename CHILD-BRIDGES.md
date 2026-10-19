@@ -54,3 +54,25 @@ Child bridges isolate plugin crashes/restarts, not whole-host power/network
 failures. There is no cross-Pi automatic takeover.
 
 Reference: https://github.com/homebridge/homebridge/wiki/Child-Bridges
+
+## Office-local Homebridge — 2026-10-19
+
+Office now has Homebridge installed as an enabled system service. UI:
+`http://192.168.2.132:8581`. `Office X7 Controls` is a separate child bridge on
+52301. The local plugin is installed from `/opt/pi-home-audio/homebridge-plugin`
+and calls `http://127.0.0.1:8100`, using the existing X7 API token locally.
+The token and pairing files remain on the Pi and are not stored in Git.
+Reproduction: `scripts/setup-office-homebridge.py` after package/plugin install.
+
+Verified with Gallery offline: authenticated local X7 read and same-value write
+succeeded; parent/child bridge, X7 API and AirPlay are active. Owner must create
+Office UI credentials and pair the child via Plugins > Pi Home Audio > Connect
+to HomeKit. Pairing the parent alone does not pair the child.
+
+Bedroom already has an enabled local Homebridge with Katana and SwitchBot child
+bridges; UI `http://192.168.2.89:8581`. Gallery already has Homebridge but was
+unreachable during this migration. Its old X7 tile remains pending cleanup.
+After Office pairing and Gallery recovery, deploy the updated plugin and run
+`scripts/retire-gallery-x7.py` on Gallery, then restart its Homebridge. Other
+Gallery plugins and pairing identities are preserved. Do not clone bridge
+identities across Pis; this is independent hosting, not automatic failover.

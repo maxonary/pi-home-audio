@@ -57,6 +57,13 @@ class PiHomeAudio {
       this.cached.delete(oldLight.UUID);
       this.log.info('Removed Gallery USB light switching');
     }
+    if (!this.config.x7Host || !this.config.x7Token) {
+      const oldVolume = this.cached.get(this.api.hap.uuid.generate('sound-blaster-x7-volume'));
+      if (oldVolume) {
+        this.api.unregisterPlatformAccessories(PLUGIN, PLATFORM, [oldVolume]);
+        this.cached.delete(oldVolume.UUID);
+      }
+    }
     if (this.config.x7Host && this.config.x7Token) {
       const a = this.accessory('sound-blaster-x7-volume', 'X7 Volume', 'Sound Blaster X7');
       const s = a.getService(S.Lightbulb) || a.addService(S.Lightbulb, 'X7 Volume');
