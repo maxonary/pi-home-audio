@@ -96,3 +96,16 @@ volume capability and retirement of the legacy dimmer. Live deployment confirms
 receiver publication and successful local X7 reads. Physical iPhone Remote
 button operation remains to be confirmed after pairing. Original Office plugin
 is backed up at `/var/backups/x7-receiver-20261021`.
+
+
+## Home app fan-style volume — 2026-10-21
+
+User selected fan rotation-speed sliders instead of light dimmers so Siri light
+groups cannot alter speaker volume. Plugin 0.5.0 converts the X7 volume accessory
+in place (same UUID) to a Fan named **Office Lautsprecher**. Both Office's local
+plugin and Gallery's legacy forwarding plugin were updated. Only Office keeps
+its already-paired optional external receiver. Katana plugin 0.2.2 similarly
+exposes the volume fan **Soundbar**, separate from **Soundbar Licht** RGB lighting.
+RotationSpeed = hardware volume, On = unmute, Off = mute. No actual volume, mute,
+EQ or AirPlay settings were written during this migration. HAP service tests
+confirm fan percentage/mute mapping and removal of Lightbulb volume services.

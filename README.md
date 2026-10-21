@@ -20,13 +20,16 @@ remains in https://github.com/maxonary/katanactl.
 
 ## HomeKit
 
-The local `homebridge-pi-home-audio` plugin runs on Office. Version 0.4.0
-publishes **Office X7** as an external receiver with native volume up/down and
-mute controls, replacing Office's former dimmable-light volume accessory.
-Pair the external **Office X7** receiver separately; pairing the parent or child
-bridge alone does not add it. Use the iPhone Control Centre Remote after pairing.
-The receiver's Active control mutes/unmutes audio; it does not switch physical
-power. AirPlay software volume remains independent.
+The `homebridge-pi-home-audio` plugin 0.5.0 exposes **Office Lautsprecher** as a
+Fan service: rotation speed is hardware volume, On unmutes and Off mutes.
+It has no Lightbulb service, so light-group commands do not change audio volume.
+The Office host is independent; Gallery's old forwarded X7 tile is converted to
+the same fan representation until Office pairing/migration is completed.
+Existing accessory UUIDs and bridge pairing identities are preserved.
+
+The external receiver is optional (`nativeReceiver: true`) and is retained on
+Office for its already-paired receiver. AirPlay software volume and EQ are
+unchanged. Active means unmuted audio, not hardware power.
 
 Gallery USB light switching was retired because USB power is shared with the DAC.
 Software EQ controls are disabled in HomeKit; native X7 EQ/SBX settings have not

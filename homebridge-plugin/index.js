@@ -93,15 +93,24 @@ class PiHomeAudio {
       this.cached.delete(oldLight.UUID);
       this.log.info('Removed Gallery USB light switching');
     }
-    { // Retire the volume-as-light accessory, preserving bridge identities.
-      const oldVolume = this.cached.get(this.api.hap.uuid.generate('sound-blaster-x7-volume'));
-      if (oldVolume) {
-        this.api.unregisterPlatformAccessories(PLUGIN, PLATFORM, [oldVolume]);
-        this.cached.delete(oldVolume.UUID);
-      }
+    if (!this.config.x7Host || !this.config.x7Token) {
+      const old=this.cached.get(this.api.hap.uuid.generate('sound-blaster-x7-volume'));
+      if(old) this.api.unregisterPlatformAccessories(PLUGIN,PLATFORM,[old]);
     }
     if (this.config.x7Host && this.config.x7Token) {
-      this.setupReceiver();
+      const a=this.accessory('sound-blaster-x7-volume','Office Lautsprecher','Sound Blaster X7');
+      a.displayName='Office Lautsprecher';
+      a.getService(S.AccessoryInformation).setCharacteristic(C.Name,'Office Lautsprecher');
+      const old=a.getService(S.Lightbulb);if(old)a.removeService(old);
+      const fan=a.getService(S.Fan)||a.addService(S.Fan,'Office Lautsprecher','x7-volume-fan');
+      fan.setCharacteristic(C.Name,'Office Lautsprecher');
+      fan.getCharacteristic(C.On).onGet(async()=>!(await this.x7()).muted).onSet(async value=>{await this.x7({muted:!value});});
+      fan.getCharacteristic(C.RotationSpeed).onGet(async()=>(await this.x7()).volume).onSet(async value=>{await this.x7({volume:Math.max(0,Math.min(100,Math.round(value)))});});
+      this.api.updatePlatformAccessories([a]);
+      if(this.config.nativeReceiver) this.setupReceiver();
+      const poll=setInterval(async()=>{try{const s=await this.x7();fan.updateCharacteristic(C.On,!s.muted);fan.updateCharacteristic(C.RotationSpeed,s.volume);}catch(e){this.log.debug(e.message);}},15000);
+      this.api.on('shutdown',()=>clearInterval(poll));
+      this.log.info('X7 fan volume registered: speed = hardware volume, on/off = unmute/mute');
       if (this.config.officeEQ) {
         for (const preset of ['flat', 'night', 'speech']) {
           const name = 'Office EQ ' + preset[0].toUpperCase() + preset.slice(1);
