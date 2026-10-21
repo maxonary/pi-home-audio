@@ -38,6 +38,42 @@ class PiHomeAudio {
     if (!response.ok) throw new Error('X7 control unavailable: ' + response.status);
     return response.json();
   }
+  setupReceiver() {
+    const {Service:S,Characteristic:C}=this.api.hap;
+    const a=new this.api.platformAccessory('Office X7',this.api.hap.uuid.generate('sound-blaster-x7-receiver'),this.api.hap.Categories.AUDIO_RECEIVER);
+    a.getService(S.AccessoryInformation).setCharacteristic(C.Manufacturer,'Creative Technology').setCharacteristic(C.Model,'Sound Blaster X7').setCharacteristic(C.SerialNumber,'Office-X7');
+    const tv=a.addService(S.Television,'Office X7','x7-receiver');
+    tv.setCharacteristic(C.ConfiguredName,'Office X7').setCharacteristic(C.SleepDiscoveryMode,C.SleepDiscoveryMode.ALWAYS_DISCOVERABLE).setCharacteristic(C.ActiveIdentifier,1);
+    // Active means audio enabled (unmuted); this does not claim hardware power control.
+    tv.getCharacteristic(C.Active).onGet(async()=> (await this.x7()).muted ? C.Active.INACTIVE : C.Active.ACTIVE).onSet(async value=>{await this.x7({muted:value!==C.Active.ACTIVE});});
+    tv.getCharacteristic(C.ActiveIdentifier).onGet(()=>1);
+    tv.getCharacteristic(C.RemoteKey).onSet(()=>{});
+    const input=a.addService(S.InputSource,'USB','x7-usb');
+    input.setCharacteristic(C.Identifier,1).setCharacteristic(C.ConfiguredName,'USB').setCharacteristic(C.IsConfigured,C.IsConfigured.CONFIGURED).setCharacteristic(C.InputSourceType,C.InputSourceType.OTHER);
+    tv.addLinkedService(input);
+    const speaker=a.addService(S.TelevisionSpeaker,'X7 Speaker','x7-speaker');
+    speaker.setCharacteristic(C.Active,C.Active.ACTIVE).setCharacteristic(C.VolumeControlType,C.VolumeControlType.RELATIVE_WITH_CURRENT);
+    speaker.getCharacteristic(C.Mute).onGet(async()=> (await this.x7()).muted).onSet(async muted=>{await this.x7({muted:!!muted});});
+    speaker.getCharacteristic(C.Volume).onGet(async()=> (await this.x7()).volume).onSet(async volume=>{await this.x7({volume:Math.max(0,Math.min(100,Math.round(volume)))});});
+    let writes=Promise.resolve();
+    speaker.getCharacteristic(C.VolumeSelector).onSet(value=>{
+      const operation=writes.then(async()=>{
+        const current=await this.x7();
+        const volume=Math.max(0,Math.min(100,current.volume+(value===C.VolumeSelector.INCREMENT?5:-5)));
+        const state=await this.x7({volume});
+        speaker.updateCharacteristic(C.Volume,state.volume);
+      });
+      writes=operation.catch(()=>{});return operation;
+    });
+    tv.addLinkedService(speaker);
+    this.api.publishExternalAccessories(PLUGIN,[a]);
+    const poll=setInterval(async()=>{
+      try {const s=await this.x7();speaker.updateCharacteristic(C.Volume,s.volume);speaker.updateCharacteristic(C.Mute,s.muted);tv.updateCharacteristic(C.Active,s.muted?C.Active.INACTIVE:C.Active.ACTIVE);}
+      catch(e){this.log.debug('X7 receiver unavailable: '+e.message);}
+    },15000);
+    this.api.on('shutdown',()=>clearInterval(poll));
+    this.log.info('Office X7 receiver registered: native volume +/- and mute; pair separately in Apple Home');
+  }
   setup() {
     const { Service: S, Characteristic: C } = this.api.hap;
     if (!this.config.officeEQ) {
@@ -57,7 +93,7 @@ class PiHomeAudio {
       this.cached.delete(oldLight.UUID);
       this.log.info('Removed Gallery USB light switching');
     }
-    if (!this.config.x7Host || !this.config.x7Token) {
+    { // Retire the volume-as-light accessory, preserving bridge identities.
       const oldVolume = this.cached.get(this.api.hap.uuid.generate('sound-blaster-x7-volume'));
       if (oldVolume) {
         this.api.unregisterPlatformAccessories(PLUGIN, PLATFORM, [oldVolume]);
@@ -65,15 +101,7 @@ class PiHomeAudio {
       }
     }
     if (this.config.x7Host && this.config.x7Token) {
-      const a = this.accessory('sound-blaster-x7-volume', 'X7 Volume', 'Sound Blaster X7');
-      const s = a.getService(S.Lightbulb) || a.addService(S.Lightbulb, 'X7 Volume');
-      s.getCharacteristic(C.On)
-        .onGet(async () => !(await this.x7()).muted)
-        .onSet(async value => { await this.x7({ muted: !value }); });
-      s.getCharacteristic(C.Brightness)
-        .onGet(async () => (await this.x7()).volume)
-        .onSet(async value => { await this.x7({ volume: Math.round(value) }); });
-      this.log.info('X7 Volume registered (brightness = volume, on/off = unmute/mute)');
+      this.setupReceiver();
       if (this.config.officeEQ) {
         for (const preset of ['flat', 'night', 'speech']) {
           const name = 'Office EQ ' + preset[0].toUpperCase() + preset.slice(1);

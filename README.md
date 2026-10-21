@@ -20,22 +20,24 @@ remains in https://github.com/maxonary/katanactl.
 
 ## HomeKit
 
-The local `homebridge-pi-home-audio` plugin runs on Gallery's existing Homebridge.
-It exposes **Gallery USB Light** (on/off) and **X7 Volume** (a dimmable light
-accessory: brightness is speaker volume, on/off is unmute/mute). This follows
-the same volume-slider representation as the existing Katana plugin. It does
-not switch the X7's physical power. Pair the **Gallery Audio Controls** child bridge separately in Apple Home.
-See [CHILD-BRIDGES.md](CHILD-BRIDGES.md).
+The local `homebridge-pi-home-audio` plugin runs on Office. Version 0.4.0
+publishes **Office X7** as an external receiver with native volume up/down and
+mute controls, replacing Office's former dimmable-light volume accessory.
+Pair the external **Office X7** receiver separately; pairing the parent or child
+bridge alone does not add it. Use the iPhone Control Centre Remote after pairing.
+The receiver's Active control mutes/unmutes audio; it does not switch physical
+power. AirPlay software volume remains independent.
 
-Office also exposes three software EQ preset switches: **Office EQ Flat**,
-**Office EQ Night**, and **Office EQ Speech**. See [OFFICE.md](OFFICE.md).
+Gallery USB light switching was retired because USB power is shared with the DAC.
+Software EQ controls are disabled in HomeKit; native X7 EQ/SBX settings have not
+been changed. See [CHILD-BRIDGES.md](CHILD-BRIDGES.md) for migration and pairing.
 
 X7 volume/mute use verified ALSA `Speaker` controls. No speculative HID commands
 are sent. Native X7 DSP/SBX and physical power are not implemented. Office now has a
 software EQ and USB audio routing; see [OFFICE.md](OFFICE.md).
 
 The X7 API requires a random bearer token in `/etc/x7-api.env` (root readable)
-and the Gallery Homebridge platform config. Tokens and HomeKit pairing data
+and the Office Homebridge platform config. Tokens and HomeKit pairing data
 must never be committed. Port 8100 is intended for a trusted LAN; HTTP is
 unencrypted. Do not expose it to the Internet.
 

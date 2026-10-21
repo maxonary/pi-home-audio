@@ -76,3 +76,23 @@ After Office pairing and Gallery recovery, deploy the updated plugin and run
 `scripts/retire-gallery-x7.py` on Gallery, then restart its Homebridge. Other
 Gallery plugins and pairing identities are preserved. Do not clone bridge
 identities across Pis; this is independent hosting, not automatic failover.
+
+
+## Native X7 receiver controls — 2026-10-21
+
+Plugin 0.4.0 publishes the external receiver **Office X7 BF8E**, with linked
+TelevisionSpeaker volume +/- (5 percentage-point steps), hardware mute and a
+fixed USB source. The former Office volume-as-light accessory is removed.
+The receiver must be paired separately from both the parent and child bridges.
+Active means unmuted audio, not hardware power. The existing X7 hardware level
+and mute state were left unchanged during deployment; no EQ or AirPlay changes.
+
+After the external receiver has been paired, run `scripts/retire-gallery-x7.py`
+on Gallery and restart only its Pi Home Audio child bridge to remove the old
+forwarded X7 dimmer there. That cleanup is pending receiver pairing.
+
+Validation: mock HAP tests verify native +/- and mute, speaker linkage, relative
+volume capability and retirement of the legacy dimmer. Live deployment confirms
+receiver publication and successful local X7 reads. Physical iPhone Remote
+button operation remains to be confirmed after pairing. Original Office plugin
+is backed up at `/var/backups/x7-receiver-20261021`.
