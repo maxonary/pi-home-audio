@@ -1,0 +1,64 @@
+--- a/dist/platform.js
++++ b/dist/platform.js
+@@ -369,7 +369,7 @@
+         }
+         for (const [uuid, cachedAccessory] of [...this.matterAccessories]) {
+             const duid = (_a = cachedAccessory.context) === null || _a === void 0 ? void 0 : _a.duid;
+-            if (duid && this.resolveProtocol(duid) === "matter") {
++            if (duid && (this.resolveProtocol(duid) === "matter" || this.platformConfig.q10MatterPreview)) {
+                 continue;
+             }
+             await this.unregisterMatterAccessory(uuid, cachedAccessory, "because it is no longer published over Matter");
+@@ -455,6 +455,10 @@
+                         self.log.warn(`Device '${name}' (${duid}) is configured for Matter, but Matter ` +
+                             "is unavailable; publishing it over HAP instead.");
+                     }
++                    // Stage Q10 Matter alongside the existing paired HAP fan.
++                    if (protocol === "hap" && self.matterEnabled && self.platformConfig.q10MatterPreview && model === "roborock.vacuum.ss07") {
++                        self.discoverMatterDevice(device, duid, name, matterToRegister);
++                    }
+                     if (protocol === "matter") {
+                         self.discoverMatterDevice(device, duid, name, matterToRegister);
+                         return;
+--- a/dist/vacuum_matter_accessory.js
++++ b/dist/vacuum_matter_accessory.js
+@@ -189,9 +189,12 @@
+             ...DEFAULT_CLEAN_MODE_CAPABILITIES,
+             ...((_c = (_b = roborockAPI.getCleanModeCapabilities) === null || _b === void 0 ? void 0 : _b.call(roborockAPI, device.duid)) !== null && _c !== void 0 ? _c : {}),
+         };
+-        const supportedCleanModes = buildSupportedCleanModes(capabilities);
++        const isQ10 = productModel === "roborock.vacuum.ss07";
++        const supportedCleanModes = isQ10
++            ? [{label:"Roborock app settings",mode:0,modeTags:[{value:MODE_TAG_VACUUM},{value:MODE_TAG_MOP}]}]
++            : buildSupportedCleanModes(capabilities);
+         const initialRooms = (_e = (_d = roborockAPI.getSegmentRooms) === null || _d === void 0 ? void 0 : _d.call(roborockAPI, device.duid)) !== null && _e !== void 0 ? _e : [];
+-        const initialCleanMode = capabilities.mopSupported
++        const initialCleanMode = isQ10 ? 0 : capabilities.mopSupported
+             ? CLEAN_MODE_VACUUM_AND_MOP
+             : CLEAN_MODE_VACUUM;
+         super(api, log, {
+@@ -380,6 +383,10 @@
+      */
+     async handleChangeCleanMode(request) {
+         const { newMode } = request;
++        if (this.roborockAPI.getProductAttribute(this.duid, "model") === "roborock.vacuum.ss07") {
++            if (newMode === 0) return;
++            throw new homebridge_1.MatterStatus.InvalidAction("Choose cleaning settings in the Roborock app");
++        }
+         const modeNames = ["Vacuum", "Mop", "Vacuum & Mop"];
+         this.logInfo(`Change clean mode to: ${modeNames[newMode] || newMode}`);
+         const { fanOff, fanDefault, waterOff, waterDefault, mopSupported } = this.capabilities;
+@@ -607,6 +614,13 @@
+      * present field is published (used for the post-registration seed).
+      */
+     updateFromRoborockData(data, force = false) {
++        if (this.roborockAPI.getProductAttribute(this.duid, "model") === "roborock.vacuum.ss07") {
++            const raw = this.roborockAPI._q10Raw?.get(this.duid);
++            if (raw?.[121] !== undefined) {
++                const states = {102:5,103:6301,104:6302,101:16,105:16};
++                data = {...data,state:states[raw[121]] ?? Number(raw[121])};
++            }
++        }
+         var _a;
+         try {
+             // Update operational state

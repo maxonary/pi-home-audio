@@ -1,0 +1,10 @@
+{
+  "dist/platform.js": {
+    "original": "dad8b2b72446674dc3fd59a0402a2bb495ecf38f54a1c68da9a3f519da0fdade",
+    "patched": "4a6ac32a44f6f8513593011a538d806dd86d29467a1de48e50c94f0681bd3a3d"
+  },
+  "dist/vacuum_matter_accessory.js": {
+    "original": "cf0e2179265649047f975b582060bffd9c1d6c402486b5907f19d201089f3682",
+    "patched": "68cb0bec3dd74ccfef5efd55b31336383219146148bed8814582a3ac30a98290"
+  }
+}
